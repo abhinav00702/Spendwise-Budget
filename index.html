@@ -266,7 +266,7 @@ body{
 .fab{
   position:fixed;
   bottom:calc(env(safe-area-inset-bottom,0px) + 96px);
-  right:calc(50% - 215px + 16px);
+  right:calc(50% - 215px + 20px);
   width:52px;height:52px;border-radius:50%;
   background:var(--accentg);
   display:flex;align-items:center;justify-content:center;
@@ -665,6 +665,7 @@ select{
   max-height:2000px;
   transition:max-height .35s cubic-bezier(.4,0,.2,1), opacity .25s ease;
   opacity:1;
+  padding-bottom:22px;
 }
 .collapsible-section.collapsed{
   max-height:0 !important;
@@ -899,11 +900,11 @@ select{
       </button>
       <button onclick="saveBudgets()" class="btn-accent-ghost" style="border-radius:12px;padding:7px 14px">Save All</button>
     </div>
-    <div id="budget-limits-body" class="collapsible-section">
+    <div id="budget-limits-body" class="collapsible-section" style="margin-bottom:20px">
       <div style="margin-bottom:10px;padding:8px 12px;background:var(--bg4);border-radius:12px;font-size:11px;color:var(--text2);line-height:1.6">
         🟢 <b style="color:var(--green)">Toggle On</b> = included in budget &nbsp;·&nbsp; ⚫ <b style="color:var(--text3)">Toggle Off</b> = excluded from budget calculations (e.g. Rent, Transfers)
       </div>
-      <div class="card-elevated" style="padding:16px;margin-bottom:20px">
+      <div class="card-elevated" style="padding:16px;border-radius:20px">
         <div id="budget-settings-list"></div>
       </div>
     </div>
@@ -915,18 +916,17 @@ select{
         <svg id="chevron-rules" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .3s;flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
     </div>
-    <div id="rules-body" class="collapsible-section">
-    <div class="card-elevated" style="padding:16px;margin-bottom:20px">
-      <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Group similar merchant names together</div>
-      <div id="rules-list" style="margin-bottom:12px"></div>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <input type="text" id="rule-from" placeholder="Name contains…" style="border-radius:14px;padding:13px 16px">
-        <input type="text" id="rule-to" placeholder="Replace with…" style="border-radius:14px;padding:13px 16px">
-        <select id="rule-cat-override" style="border-radius:14px;padding:13px 16px"><option value="">Keep current category</option></select>
-        <button class="btn-primary" onclick="addRule()" style="border-radius:14px;padding:13px 16px">Add Rule</button>
+    <div id="rules-body" class="collapsible-section" style="margin-bottom:20px">
+      <div class="card-elevated" style="padding:16px;border-radius:20px">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Group similar merchant names together</div>
+        <div id="rules-list" style="margin-bottom:12px"></div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <input type="text" id="rule-from" placeholder="Name contains…" style="border-radius:14px;padding:13px 16px">
+          <input type="text" id="rule-to" placeholder="Replace with…" style="border-radius:14px;padding:13px 16px">
+          <select id="rule-cat-override" style="border-radius:14px;padding:13px 16px"><option value="">Keep current category</option></select>
+          <button class="btn-primary" onclick="addRule()" style="border-radius:14px;padding:13px 16px">Add Rule</button>
+        </div>
       </div>
-    </div>
-
     </div><!-- /rules-body -->
     <!-- Data Management -->
     <div style="font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">Data Management</div>
@@ -1128,7 +1128,7 @@ const CATEGORIES = [
   'iPhone EMI','Car Payment','Phone','Business/Work','Taxes','Government/DMV'
 ];
 const CAT_ICONS = {
-  'Dining & Restaurants':'🍽️','Groceries':'🛒','Shopping':'🛍️','Gas & Auto':'⛽',
+  'Dining & Restaurants':'🌮','Groceries':'🛒','Shopping':'🛍️','Gas & Auto':'⛽',
   'Utilities & Bills':'💡','Travel & Transport':'🚗','Entertainment':'🎬',
   'Healthcare':'🏥','Streaming & Subscriptions':'📺','Wholesale Club':'🏪',
   'Rent':'🏠','Money Transfer':'💸','Insurance':'🛡️','Personal Care':'💄',
@@ -1279,15 +1279,15 @@ function applyAccentColor(hex, silent) {
     overrideStyle.textContent = `
       /* ── ACCENT DYNAMIC OVERRIDES ── */
 
-      /* Glass card — dark mode: faint accent tint */
+      /* Glass card — dark mode only: faint accent tint */
       .card {
         background: rgba(${ar},${ag},${ab},0.07);
         border-color: rgba(${ar},${ag},${ab},0.18);
       }
-      /* Glass card — light mode */
+      /* Glass card — light mode: pure frosted white, no color tint on cards */
       .light .card {
-        background: linear-gradient(145deg,rgba(255,255,255,.92),rgba(${ar},${ag},${ab},0.04));
-        border-color: rgba(${ar},${ag},${ab},0.12);
+        background: linear-gradient(145deg,rgba(255,255,255,.92),rgba(255,255,255,.80));
+        border-color: rgba(255,255,255,.85);
         box-shadow: 0 2px 16px rgba(0,0,0,.07), inset 0 1px 0 rgba(255,255,255,.95);
       }
       /* Elevated card — dark mode */
@@ -1295,54 +1295,54 @@ function applyAccentColor(hex, silent) {
         background: ${isDark ? `rgba(${ar},${ag},${ab},0.06)` : `rgba(255,255,255,.95)`};
         border-color: rgba(${ar},${ag},${ab},${isDark ? '0.14' : '0.10'});
       }
-      /* Elevated card — light mode */
+      /* Elevated card — light mode: pure frosted white */
       .light .card-elevated {
-        background: linear-gradient(145deg,rgba(255,255,255,.92),rgba(${ar},${ag},${ab},0.03));
-        border-color: rgba(${ar},${ag},${ab},0.10);
+        background: linear-gradient(145deg,rgba(255,255,255,.92),rgba(255,255,255,.80));
+        border-color: rgba(255,255,255,.85);
         box-shadow: 0 2px 12px rgba(0,0,0,.06), inset 0 1px 0 rgba(255,255,255,.95);
       }
 
-      /* Budget category cards */
+      /* Budget category cards — dark only */
       .budget-cat-card {
         background: rgba(${ar},${ag},${ab},0.06);
         border-color: rgba(${ar},${ag},${ab},0.14);
       }
       .light .budget-cat-card {
-        background: linear-gradient(145deg,rgba(255,255,255,.92),rgba(${ar},${ag},${ab},0.04));
-        border-color: rgba(${ar},${ag},${ab},0.11);
+        background: linear-gradient(145deg,rgba(255,255,255,.92),rgba(255,255,255,.80));
+        border-color: rgba(255,255,255,.85);
         box-shadow: 0 2px 10px rgba(0,0,0,.06), inset 0 1px 0 rgba(255,255,255,.95);
       }
 
-      /* Merchant cards */
+      /* Merchant cards — dark only */
       .merchant-card {
         background: rgba(${ar},${ag},${ab},0.06);
         border-color: rgba(${ar},${ag},${ab},0.14);
       }
       .light .merchant-card {
-        background: linear-gradient(145deg,rgba(255,255,255,.92),rgba(${ar},${ag},${ab},0.04));
-        border-color: rgba(${ar},${ag},${ab},0.11);
+        background: linear-gradient(145deg,rgba(255,255,255,.92),rgba(255,255,255,.80));
+        border-color: rgba(255,255,255,.85);
         box-shadow: 0 2px 8px rgba(0,0,0,.05), inset 0 1px 0 rgba(255,255,255,.95);
       }
 
-      /* Insight card */
+      /* Insight card — dark tint, light stays near-white */
       .insight {
         background: linear-gradient(135deg,rgba(${ar},${ag},${ab},0.14),rgba(${a2r},${a2g},${a2b},0.06));
         border-color: rgba(${ar},${ag},${ab},0.25);
       }
       .light .insight {
-        background: linear-gradient(135deg,rgba(${ar},${ag},${ab},0.08),rgba(255,255,255,.82));
-        border-color: rgba(${ar},${ag},${ab},0.18);
+        background: linear-gradient(145deg,rgba(255,255,255,.92),rgba(255,255,255,.80));
+        border-color: rgba(255,255,255,.85);
         box-shadow: 0 2px 14px rgba(0,0,0,.07), inset 0 1px 0 rgba(255,255,255,.95);
       }
 
-      /* Stat pills */
+      /* Stat pills — dark accent tint, light very subtle */
       .stat-pill {
         background: rgba(${ar},${ag},${ab},0.10);
         border-color: rgba(${ar},${ag},${ab},0.20);
       }
       .light .stat-pill {
-        background: rgba(${ar},${ag},${ab},0.07);
-        border-color: rgba(${ar},${ag},${ab},0.15);
+        background: rgba(255,255,255,.82);
+        border-color: rgba(255,255,255,.9);
         box-shadow: 0 2px 12px rgba(0,0,0,.07), inset 0 1px 0 rgba(255,255,255,.95);
       }
 
@@ -1384,11 +1384,14 @@ function applyAccentColor(hex, silent) {
         box-shadow: 0 8px 32px rgba(${ar},${ag},${ab},0.12), 0 2px 12px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,0.9);
       }
 
-      /* Hero light mode tint */
+      /* Hero — dark: deep color tint; light: strong visible tint */
       .light .hero {
-        background: linear-gradient(150deg,rgba(${ar},${ag},${ab},.07) 0%,rgba(255,255,255,.88) 50%,rgba(${a2r},${a2g},${a2b},.05) 100%);
-        border: 1px solid rgba(${ar},${ag},${ab},0.15);
-        box-shadow: 0 8px 32px rgba(${ar},${ag},${ab},.10), inset 0 1px 0 rgba(255,255,255,.95);
+        background: linear-gradient(150deg,
+          rgba(${ar},${ag},${ab},.22) 0%,
+          rgba(${ar},${ag},${ab},.10) 40%,
+          rgba(${a2r},${a2g},${a2b},.15) 100%);
+        border: 1.5px solid rgba(${ar},${ag},${ab},0.30);
+        box-shadow: 0 8px 32px rgba(${ar},${ag},${ab},.18), inset 0 1px 0 rgba(255,255,255,.6);
       }
 
       /* Progress fills */
@@ -1406,7 +1409,7 @@ function applyAccentColor(hex, silent) {
       /* FAB shadow */
       .fab {
         background: linear-gradient(135deg,${hex},${accent2});
-        box-shadow: 0 6px 28px rgba(${ar},${ag},${ab},.50);
+        box-shadow: 0 6px 28px rgba(${ar},${ag},.50);
       }
       .fab:active {
         box-shadow: 0 3px 12px rgba(${ar},${ag},${ab},.40);
@@ -1448,14 +1451,14 @@ function applyAccentColor(hex, silent) {
           : ''};
       }
 
-      /* Day context pills */
+      /* Day context pills — light: frosted white (no color tint) */
       #home-day-context > div {
         background: rgba(${ar},${ag},${ab},${isDark ? '0.10' : '0.06'});
         border-color: rgba(${ar},${ag},${ab},${isDark ? '0.20' : '0.14'});
       }
       .light #home-day-context > div {
-        background: linear-gradient(145deg,rgba(255,255,255,.9),rgba(${ar},${ag},${ab},0.06)) !important;
-        border: 1px solid rgba(${ar},${ag},${ab},0.14) !important;
+        background: rgba(255,255,255,.85) !important;
+        border: 1px solid rgba(255,255,255,.9) !important;
         box-shadow: 0 2px 12px rgba(0,0,0,.07), inset 0 1px 0 rgba(255,255,255,.95) !important;
       }
 
@@ -1856,7 +1859,7 @@ function renderDayContext(cm) {
   el.innerHTML =
     pill(`Day ${today} · Last mo`, fmt(pmByDay),              pmByDay > curSpent ? 'var(--green)' : '#ff8a80') +
     pill('3-mo avg by now',        fmt(avgByDay),             avgByDay > curSpent ? 'var(--green)' : '#ff8a80') +
-    pill(`Peak: ${DOW[peakDow]}`,  `~${fmtK(dowAvgs[peakDow])}/day`, 'var(--accent2)');
+    pill(`Peak: ${DOW[peakDow]}`,  `${fmtK(dowAvgs[peakDow])}/day`, 'var(--accent)');
 }
 
 function renderBudgetList() {
