@@ -427,17 +427,17 @@ select{
 
 /* ── INSIGHT CARD ── */
 .insight{
-  background:linear-gradient(135deg,rgba(124,111,247,.12),rgba(169,159,253,.06));
-  border:1px solid rgba(124,111,247,.2);
+  background:linear-gradient(135deg,rgba(124,111,247,.2),rgba(169,159,253,.12));
+  border:1px solid rgba(124,111,247,.35);
   border-radius:16px;padding:14px 16px;margin-bottom:10px;
 }
 .light .insight{
-  background:#ffffff;
-  border:1px solid rgba(0,0,0,.07);
-  box-shadow:0 2px 12px rgba(0,0,0,.06);
+  background:linear-gradient(135deg,rgba(108,95,245,.08),rgba(169,159,253,.05));
+  border:1px solid rgba(108,95,245,.2);
+  box-shadow:0 2px 12px rgba(108,95,245,.08);
 }
 .insight-icon{display:none}
-.insight-text{font-size:13px;color:var(--text);font-weight:500;line-height:1.5}
+.insight-text{font-size:13px;font-weight:500;line-height:1.5}
 /* ── ADD TXN CATEGORY PILLS ── */
 .cat-pill-btn:active{transform:scale(.94) !important}
 .light .cat-pill-btn{background:var(--bg4) !important;border-color:#e0e0f0 !important;color:var(--text2) !important}
@@ -1052,7 +1052,7 @@ function save() { localStorage.setItem('spendwise_v3', JSON.stringify(state)); }
 function applyTheme() {
   document.body.classList.toggle('light', !state.darkMode);
 }
-function toggleDark() { state.darkMode = !state.darkMode; applyTheme(); save(); }
+function toggleDark() { state.darkMode = !state.darkMode; applyTheme(); renderHero(); save(); }
 
 // ═══════════════════════════════════════════════════════════════
 // HELPERS
@@ -1313,12 +1313,12 @@ function renderHero() {
 
     const insightEl = document.getElementById('home-insight-text');
     const isLight = !state.darkMode;
-    const budgetColor = left<0 ? '#e05555' : (isLight ? '#00a87a' : '#22d3a0');
-    const clrLabel   = isLight ? 'rgba(0,0,0,.38)'  : 'rgba(255,255,255,.4)';
-    const clrBody    = isLight ? 'rgba(0,0,0,.55)'  : 'rgba(255,255,255,.65)';
-    const clrStrong  = isLight ? 'rgba(0,0,0,.82)'  : 'rgba(255,255,255,.88)';
-    const clrDivider = isLight ? 'rgba(0,0,0,.08)'  : 'rgba(255,255,255,.08)';
-    const clrYdAmt   = ydSpend>0 ? (isLight ? '#6c5ff5' : '#a99ffd') : (isLight ? 'rgba(0,0,0,.2)' : 'rgba(255,255,255,.25)');
+    const budgetColor = left<0 ? (isLight ? '#cc2222' : '#ff6b6b') : (isLight ? '#007a55' : '#22d3a0');
+    const clrLabel   = isLight ? '#888899'  : '#9090b8';
+    const clrBody    = isLight ? '#333344'  : '#ccccdd';
+    const clrStrong  = isLight ? '#0d0d1a'  : '#ffffff';
+    const clrDivider = isLight ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.15)';
+    const clrYdAmt   = ydSpend>0 ? (isLight ? '#4433cc' : '#c4b5fd') : (isLight ? '#aaaaaa' : '#666688');
     insightEl.innerHTML = `
       <div style="display:flex;align-items:flex-start;gap:10px">
         <span style="font-size:26px;line-height:1;flex-shrink:0">🎯</span>
