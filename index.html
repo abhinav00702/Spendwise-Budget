@@ -127,49 +127,39 @@ body{
   border-radius:28px;
   z-index:200;
   padding:0 6px;
-  /* dark glass */
-  background:linear-gradient(135deg,
-    rgba(30,26,54,0.82) 0%,
-    rgba(22,18,44,0.88) 50%,
-    rgba(18,24,46,0.82) 100%);
-  border:1px solid rgba(255,255,255,0.1);
-  backdrop-filter:blur(28px) saturate(180%);
-  -webkit-backdrop-filter:blur(28px) saturate(180%);
+  /* Pure see-through glass — background content shows through */
+  background:rgba(8,8,18,0.08);
+  border:1px solid rgba(255,255,255,0.09);
+  backdrop-filter:blur(32px) saturate(180%) brightness(1.05);
+  -webkit-backdrop-filter:blur(32px) saturate(180%) brightness(1.05);
   box-shadow:
-    0 8px 32px rgba(0,0,0,0.45),
-    0 2px 8px rgba(0,0,0,0.3),
-    inset 0 1px 0 rgba(255,255,255,0.08),
-    inset 0 -1px 0 rgba(0,0,0,0.2);
+    0 4px 24px rgba(0,0,0,0.12),
+    inset 0 1px 0 rgba(255,255,255,0.1),
+    inset 0 -1px 0 rgba(0,0,0,0.06);
   overflow:visible;
 }
-/* subtle inner gradient shimmer */
+/* hairline specular highlight only — no fill */
 .bottom-nav::before{
   content:'';
   position:absolute;inset:0;
   border-radius:28px;
-  background:linear-gradient(135deg,
-    rgba(124,111,247,0.12) 0%,
-    transparent 40%,
-    rgba(0,212,160,0.07) 100%);
+  background:linear-gradient(160deg,
+    rgba(255,255,255,0.06) 0%,
+    transparent 50%);
   pointer-events:none;
 }
 .light .bottom-nav{
-  background:linear-gradient(135deg,
-    rgba(255,255,255,0.72) 0%,
-    rgba(245,244,255,0.80) 50%,
-    rgba(240,245,255,0.72) 100%);
-  border:1px solid rgba(124,111,247,0.18);
+  background:rgba(255,255,255,0.18);
+  border:1px solid rgba(255,255,255,0.45);
   box-shadow:
-    0 8px 32px rgba(108,95,245,0.15),
-    0 2px 12px rgba(0,0,0,0.08),
-    inset 0 1px 0 rgba(255,255,255,0.9),
-    inset 0 -1px 0 rgba(108,95,245,0.06);
+    0 4px 24px rgba(0,0,0,0.06),
+    inset 0 1px 0 rgba(255,255,255,0.8),
+    inset 0 -1px 0 rgba(0,0,0,0.03);
 }
 .light .bottom-nav::before{
-  background:linear-gradient(135deg,
-    rgba(124,111,247,0.08) 0%,
-    transparent 50%,
-    rgba(0,212,160,0.05) 100%);
+  background:linear-gradient(160deg,
+    rgba(255,255,255,0.4) 0%,
+    transparent 50%);
 }
 .nav-btn{
   flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -427,14 +417,14 @@ select{
 
 /* ── INSIGHT CARD ── */
 .insight{
-  background:linear-gradient(135deg,rgba(124,111,247,.2),rgba(169,159,253,.12));
-  border:1px solid rgba(124,111,247,.35);
+  background:var(--card);
+  border:1px solid var(--border);
   border-radius:16px;padding:14px 16px;margin-bottom:10px;
 }
 .light .insight{
-  background:linear-gradient(135deg,rgba(108,95,245,.08),rgba(169,159,253,.05));
-  border:1px solid rgba(108,95,245,.2);
-  box-shadow:0 2px 12px rgba(108,95,245,.08);
+  background:#ffffff;
+  border:1px solid rgba(0,0,0,0.07);
+  box-shadow:0 2px 16px rgba(0,0,0,0.06);
 }
 .insight-icon{display:none}
 .insight-text{font-size:13px;font-weight:500;line-height:1.5}
@@ -595,15 +585,10 @@ select{
           <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:1px;text-transform:uppercase">Spendwise</div>
           <div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-.5px" id="hero-month">June 2026</div>
         </div>
-        <div style="display:flex;gap:8px">
-          <button onclick="toggleDark()" style="background:rgba(255,255,255,.1);border:none;border-radius:12px;padding:8px 10px;cursor:pointer;color:rgba(255,255,255,.8)">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="theme-icon"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
-          </button>
-          <button onclick="openAdd()" style="background:rgba(124,111,247,.5);border:1px solid rgba(124,111,247,.5);border-radius:12px;padding:8px 14px;cursor:pointer;color:#fff;font-family:inherit;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Add
-          </button>
-        </div>
+        <button onclick="toggleDark()" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:8px 12px;cursor:pointer;color:rgba(255,255,255,.85);display:flex;align-items:center;gap:6px;font-family:inherit;font-size:12px;font-weight:600;transition:background .2s">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="theme-icon"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+          <span id="theme-label">Dark</span>
+        </button>
       </div>
       <!-- Spent ring + stats -->
       <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
@@ -830,20 +815,8 @@ select{
     </div>
     <div id="csv-import-body" class="collapsible-section">
       <div class="card-elevated" style="padding:16px;margin-bottom:20px">
-        <div style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6">Upload a <b style="color:var(--text)">.csv</b> file to bulk-import transactions. Each row becomes one transaction.</div>
-        <!-- Format spec -->
-        <div style="background:var(--bg4);border-radius:12px;padding:12px 14px;margin-bottom:14px;border:1px solid var(--border)">
-          <div style="font-size:10px;font-weight:800;color:var(--text2);letter-spacing:.6px;text-transform:uppercase;margin-bottom:8px">Required CSV format</div>
-          <div style="font-family:monospace;font-size:11px;color:var(--accent2);background:rgba(124,111,247,.08);border-radius:8px;padding:8px 10px;margin-bottom:8px;overflow-x:auto;white-space:nowrap">date,merchant,description,category,amount</div>
-          <div style="font-size:11px;color:var(--text2);line-height:1.7">
-            <span style="color:var(--text3)">date</span> — <code style="font-size:10px;color:var(--accent2)">YYYY-MM-DD</code> (e.g. 2026-06-01)<br>
-            <span style="color:var(--text3)">merchant</span> — store or payee name<br>
-            <span style="color:var(--text3)">description</span> — memo/note (can be blank)<br>
-            <span style="color:var(--text3)">category</span> — must match a category name exactly<br>
-            <span style="color:var(--text3)">amount</span> — positive number (e.g. 42.50)
-          </div>
-          <div style="margin-top:8px;font-size:10px;color:var(--text3)">Example row: <span style="color:var(--accent2);font-family:monospace">2026-06-01,Starbucks,Coffee,Dining &amp; Restaurants,6.75</span></div>
-        </div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.5">Format: <code style="font-size:11px;color:var(--accent2);background:rgba(124,111,247,.1);padding:2px 6px;border-radius:6px">date, merchant, description, category, amount</code></div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:12px;line-height:1.6">Date as <code style="color:var(--accent2)">YYYY-MM-DD</code> · amount as a positive number · category must match exactly</div>
         <label style="display:block;text-align:center;cursor:pointer;padding:14px 20px;border-radius:16px;font-size:14px;font-weight:600;font-family:inherit;background:rgba(124,111,247,.15);color:var(--accent2);border:1.5px solid rgba(124,111,247,.3);transition:background .2s">
           📂 Choose CSV File
           <input type="file" accept=".csv" onchange="importCSV(event)" style="display:none">
@@ -1025,8 +998,9 @@ let state = {
   excludedCats: []
 };
 
-const TODAY = new Date().toISOString().split('T')[0];
-const NOW   = new Date();
+const _now = new Date();
+const TODAY = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`;
+const NOW   = _now;
 
 const CATEGORIES = [
   'Dining & Restaurants','Groceries','Shopping','Gas & Auto','Utilities & Bills',
@@ -1085,6 +1059,16 @@ function save() { localStorage.setItem('spendwise_v3', JSON.stringify(state)); }
 
 function applyTheme() {
   document.body.classList.toggle('light', !state.darkMode);
+  const lbl = document.getElementById('theme-label');
+  const ico = document.getElementById('theme-icon');
+  if (lbl) lbl.textContent = state.darkMode ? 'Dark' : 'Light';
+  if (ico) {
+    if (state.darkMode) {
+      ico.innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>';
+    } else {
+      ico.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+    }
+  }
 }
 function toggleDark() { state.darkMode = !state.darkMode; applyTheme(); renderHero(); save(); }
 
@@ -2306,7 +2290,8 @@ function saveIncome() {
 function exportData() {
   const blob=new Blob([JSON.stringify({transactions:state.transactions,budgets:state.budgets,rules:state.rules,income:state.income},null,2)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download=`spendwise_backup_${new Date().toISOString().split('T')[0]}.json`; a.click();
+  const d=new Date(); const localDate=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  a.download=`spendwise_backup_${localDate}.json`; a.click();
 }
 function importData(e) {
   const file=e.target.files[0]; if (!file) return;
@@ -2322,25 +2307,116 @@ function importData(e) {
     } catch { alert('Invalid file'); }
   }; r.readAsText(file);
 }
+// ── SMART CATEGORY INFERENCE ──────────────────────────────────────
+// Maps keywords (tested against merchant name + csv category) → app category
+const CAT_KEYWORD_MAP = [
+  // Dining & Restaurants
+  { cat:'Dining & Restaurants', keys:['restaurant','cafe','coffee','starbucks','peets','dunkin','mcdonalds','mcdonald','burger','kfc','chick-fil-a','chipotle','taco','subway','domino','pizza','ramen','sushi','panda','panera','denny','ihop','habit','popeye','in-n-out','in n out','wendy','jack in the box','el pollo','wingstop','shake shack','five guys','raising cane','cane','applebee','olive garden','cheesecake','chili\'s','red robin','dine','eatery','bistro','grill','kitchen','brasserie','trattoria','osteria','izakaya','pho','banh mi','shawarma','falafel','tikka','masala','curry','dim sum','wok','noodle','deli','bake','bakery','bagel','donut','doughnut','crepe','waffle','brunch','ike\'s','ikes','habit burger'] },
+  // Groceries
+  { cat:'Groceries', keys:['grocery','groceries','trader joe','whole food','safeway','kroger','sprouts','albertsons','lucky','vons','ralphs','publix','wegman','aldi','hmart','h mart','99 ranch','ranch market','india cash','lakshmi','apni mandi','mandi','bazar','bazaar','mitsuwa','daiso grocery','super market','supermarket','fresh market','farmers market','produce','farm stand','organic'] },
+  // Gas & Auto
+  { cat:'Gas & Auto', keys:['gas','chevron','shell','arco','bp','exxon','mobil','citgo','texaco','speedway','casey','circle k','marathon','pilot','love\'s','loves','sunoco','rotten robbie','alliance gas','valero','76 gas','gulf oil','fuel','t-mobile','tmobile','mint mobile','car wash','ducky','autozone','o\'reilly','advance auto','napa auto','pep boys','jiffy lube','firestone','discount tire','goodyear','dmv','vehicle','registration'] },
+  // Wholesale Club
+  { cat:'Wholesale Club', keys:['costco','sam\'s club','bj\'s wholesale','target','walmart','wal-mart','whole foods','lion food','halal meat','bharat bazar','new india bazar','india bazar','trinethra','bharat','rj produce','bedi farm','mountain fresh','valois','h mart','99 ranch','wholesale','club store','laderach','daiso'] },
+  // Utilities & Bills
+  { cat:'Utilities & Bills', keys:['pg&e','pge','pacific gas','electric','utility','utilities','comcast','xfinity','at&t','verizon','spectrum','cox','centurylink','water','sewer','garbage','trash','internet','cable','lemonade insurance','renters insurance','state farm','allstate','geico','progressive','insurance'] },
+  // Travel & Transport
+  { cat:'Travel & Transport', keys:['uber','lyft','taxi','cab','transit','caltrain','bart','muni','vta','metro','bus pass','clipper','parking','hotel','motel','marriott','hilton','hyatt','airbnb','vrbo','expedia','booking.com','kayak','priceline','airline','flight','southwest','delta','united','american air','spirit','frontier','amtrak','hertz','enterprise rent','avis','budget car','national car','zipcar','airport','sjc','sfo','lax','ord','jfk'] },
+  // Streaming & Subscriptions
+  { cat:'Streaming & Subscriptions', keys:['netflix','hulu','disney plus','disneyplus','hbo','max','amazon prime','apple tv','spotify','pandora','tidal','youtube premium','twitch','peacock','paramount','sling','fubo','crunchyroll','audible','kindle','adobe','microsoft 365','office 365','google one','dropbox','icloud','apple.com/bill','apple services'] },
+  // Shopping
+  { cat:'Shopping', keys:['amazon','ebay','etsy','aliexpress','shein','zara','h&m','gap','old navy','banana republic','jcrew','j crew','nordstrom','macy\'s','bloomingdale','saks','neiman','tj maxx','t.j. maxx','marshalls','ross','burlington','paypal','bestbuy','best buy','apple store','ikea','home depot','lowes','target online','walmart.com','chewy','wayfair','overstock','wish','temu','shopify','fashion','apparel','clothing','shoes','skechers','nike','adidas','aldo','pandora','jewelry','accessory'] },
+  // Personal Care
+  { cat:'Personal Care', keys:['salon','spa','hair','nail','manicure','pedicure','great clips','supercuts','ulta','sephora','bath & body','bath and body','lush','cvs pharmacy','walgreen','rite aid','duane reade','boots','skincare','beauty','barber','wax','massage','uniqlo','kate spade'] },
+  // Healthcare
+  { cat:'Healthcare', keys:['hospital','clinic','doctor','dentist','dental','vision','optometry','glasses','glassesusa','pharmacy','cvs','walgreens','urgent care','medical','health','physio','therapy','kaiser','blue shield','aetna','cigna','humana','lab','radiology','prescription','rx'] },
+  // Entertainment
+  { cat:'Entertainment', keys:['movie','cinema','amc','regal','cinemark','theater','concert','ticketmaster','stubhub','eventbrite','live nation','spotify','apple music','steam','playstation','xbox','nintendo','gamestop','museum','zoo','aquarium','theme park','disneyland','universal','six flags','legoland','bowling','mini golf','escape room','trampoline','laser tag','arcade','netflix','hulu','sports','nba','nfl','mlb','nhl','mls','tickets','comedy','show','event','festival'] },
+  // Food Delivery
+  { cat:'Food Delivery', keys:['doordash','dd *','grubhub','ubereats','uber eats','postmates','instacart','shipt','chowbus','caviar','gopuff','favor','menulog','deliveroo','just eat','food delivery','delivery'] },
+  // Parking & Tolls
+  { cat:'Parking & Tolls', keys:['parking','parkme','spothero','parkmobile','paybyphone','parkwhiz','laz parking','impark','parq','toll','fastrak','e-zpass','ezpass','sunpass','pikepass','peach pass','nc quick pass','bridge toll','tunnel'] },
+  // Money Transfer
+  { cat:'Money Transfer', keys:['zelle','venmo','paypal transfer','cash app','square cash','wise','transferwise','remitly','xoom','western union','moneygram','wire transfer','ach transfer','fidelity','robinhood','schwab','vanguard','etrade','td ameritrade','bank transfer','bkofamerica atm','atm cash'] },
+  // Transfers & Gifts
+  { cat:'Transfers & Gifts', keys:['gift','donation','charity','venmo payment','apple cash','cash gift','birthday','give'] },
+  // Rent
+  { cat:'Rent', keys:['rent','appfolio','bilt','lease','apartment','property management','landlord'] },
+  // Financial & Fees
+  { cat:'Financial & Fees', keys:['bank fee','late fee','overdraft','annual fee','interest charge','finance charge','atm fee','foreign transaction','daily cash adjustment','your-saving','savings'] },
+  // Insurance
+  { cat:'Insurance', keys:['geico','allstate','state farm','progressive','liberty mutual','nationwide','farmers insurance','usaa','aaa insurance','travelers insurance','lemonade','renters insurance','car insurance','auto insurance','home insurance'] },
+  // Taxes
+  { cat:'Taxes', keys:['irs','tax','turbotax','taxact','hrblock','h&r block','freetaxusa','taxslayer','ca franchise tax','state tax','federal tax'] },
+  // Car Payment
+  { cat:'Car Payment', keys:['car loan','auto loan','mazda','bmw financial','toyota financial','honda financial','ford motor credit','gm financial','hyundai finance','kia finance','nissan motor','subaru motors'] },
+  // Phone
+  { cat:'Phone', keys:['phone payment','phone bill','cellular'] },
+  // Business/Work
+  { cat:'Business/Work', keys:['linkedin','indeed','zoom','slack','notion','figma','canva','aws','google cloud','azure','shopify','squarespace','wix','godaddy','namecheap','fedex office','ups store','usps','staples','office depot','business','coworking','work expense','professional'] },
+];
+
+// Fuzzy-match a raw csv category string → known CATEGORIES entry
+function matchKnownCategory(raw) {
+  const r = raw.trim();
+  if (!r) return null;
+  // Exact match first
+  if (CATEGORIES.includes(r)) return r;
+  // Case-insensitive exact
+  const lower = r.toLowerCase();
+  const exact = CATEGORIES.find(c => c.toLowerCase() === lower);
+  if (exact) return exact;
+  // Substring match: does any known category contain the raw, or vice versa
+  const substr = CATEGORIES.find(c => c.toLowerCase().includes(lower) || lower.includes(c.toLowerCase()));
+  if (substr) return substr;
+  return null;
+}
+
+// Keyword-based inference from merchant + raw category text
+function inferCategory(merchant, rawCat) {
+  const text = (merchant + ' ' + rawCat).toLowerCase();
+  for (const {cat, keys} of CAT_KEYWORD_MAP) {
+    for (const kw of keys) {
+      if (text.includes(kw)) return cat;
+    }
+  }
+  return 'Other';
+}
+
+// Master resolver: tries known cat match first, then keyword inference
+function resolveCategory(rawCat, merchant) {
+  const matched = matchKnownCategory(rawCat);
+  if (matched) return matched;
+  return inferCategory(merchant, rawCat);
+}
+
 function importCSV(e) {
   const file=e.target.files[0]; if (!file) return;
   const r=new FileReader(); r.onload=ev=>{
     const lines=ev.target.result.split('\n').filter(l=>l.trim());
-    let count=0;
+    let count=0, autoMapped=0;
     for (let i=1;i<lines.length;i++) {
-      const cols=parseCSVLine(lines[i]); if (cols.length<5) continue;
+      const cols=parseCSVLine(lines[i]); if (cols.length<4) continue;
       try {
+        const merchant = (cols[1]||'').replace(/"/g,'').trim();
+        const rawCat   = (cols[3]||'').replace(/"/g,'').trim();
+        const resolved = resolveCategory(rawCat, merchant);
+        if (resolved !== rawCat && !CATEGORIES.includes(rawCat)) autoMapped++;
         state.transactions.push({
           id:state.nextId++,
-          date:cols[0].replace(/"/g,'').trim(),
-          merchant:cols[1].replace(/"/g,'').trim(),
-          category:cols[3].replace(/"/g,'').trim(),
-          amount:parseFloat(cols[4].replace(/"/g,'').trim())||0,
+          date:(cols[0]||'').replace(/"/g,'').trim(),
+          merchant,
+          category:resolved,
+          amount:parseFloat((cols[4]||cols[3]||'').replace(/"/g,'').trim())||0,
           notes:''
         }); count++;
       } catch {}
     }
-    applyAllRules(); renderAll(); populateSelects(); save(); alert(`Imported ${count} transactions!`);
+    applyAllRules(); renderAll(); populateSelects(); save();
+    const msg = autoMapped>0
+      ? `Imported ${count} transactions.\n✨ Auto-mapped ${autoMapped} unrecognized categories using smart matching.`
+      : `Imported ${count} transactions.`;
+    alert(msg);
   }; r.readAsText(file);
 }
 function parseCSVLine(line) {
