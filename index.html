@@ -127,15 +127,15 @@ body{
   border-radius:28px;
   z-index:200;
   padding:0 6px;
-  /* Pure see-through glass — background content shows through */
-  background:rgba(8,8,18,0.08);
-  border:1px solid rgba(255,255,255,0.09);
-  backdrop-filter:blur(32px) saturate(180%) brightness(1.05);
-  -webkit-backdrop-filter:blur(32px) saturate(180%) brightness(1.05);
+  /* Semi-transparent glass — enough opacity to read, still lets color bleed through */
+  background:rgba(10,10,22,0.55);
+  border:1px solid rgba(255,255,255,0.13);
+  backdrop-filter:blur(28px) saturate(200%) brightness(1.1);
+  -webkit-backdrop-filter:blur(28px) saturate(200%) brightness(1.1);
   box-shadow:
-    0 4px 24px rgba(0,0,0,0.12),
-    inset 0 1px 0 rgba(255,255,255,0.1),
-    inset 0 -1px 0 rgba(0,0,0,0.06);
+    0 4px 32px rgba(0,0,0,0.28),
+    inset 0 1px 0 rgba(255,255,255,0.12),
+    inset 0 -1px 0 rgba(0,0,0,0.1);
   overflow:visible;
 }
 /* hairline specular highlight only — no fill */
@@ -149,12 +149,12 @@ body{
   pointer-events:none;
 }
 .light .bottom-nav{
-  background:rgba(255,255,255,0.18);
-  border:1px solid rgba(255,255,255,0.45);
+  background:rgba(255,255,255,0.62);
+  border:1px solid rgba(255,255,255,0.65);
   box-shadow:
-    0 4px 24px rgba(0,0,0,0.06),
-    inset 0 1px 0 rgba(255,255,255,0.8),
-    inset 0 -1px 0 rgba(0,0,0,0.03);
+    0 4px 24px rgba(0,0,0,0.10),
+    inset 0 1px 0 rgba(255,255,255,0.9),
+    inset 0 -1px 0 rgba(0,0,0,0.04);
 }
 .light .bottom-nav::before{
   background:linear-gradient(160deg,
@@ -691,6 +691,7 @@ select{
       <button class="tab-pill"        data-trends="categories" onclick="showTrends('categories')">Categories</button>
       <button class="tab-pill"        data-trends="merchants"  onclick="showTrends('merchants')">Merchants</button>
       <button class="tab-pill"        data-trends="insights"   onclick="showTrends('insights')">Insights</button>
+      <button class="tab-pill"        data-trends="income"     onclick="showTrends('income')">Income</button>
     </div>
 
     <!-- Overview -->
@@ -738,13 +739,24 @@ select{
     <div id="trends-insights" style="display:none">
       <div id="insights-list"></div>
     </div>
+
+    <!-- Income -->
+    <div id="trends-income" style="display:none">
+      <div id="income-panel"></div>
+    </div>
   </div>
 </div>
 
 <!-- ═══════════════════════════════════ SETTINGS TAB ═══════════════════════════════════ -->
 <div id="tab-settings" class="tab-content">
   <div class="page">
-    <div class="sec-hd" style="margin-bottom:20px">Settings</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div class="sec-hd">Settings</div>
+      <button onclick="exportData()" style="display:flex;align-items:center;gap:6px;background:rgba(124,111,247,.15);border:1px solid rgba(124,111,247,.3);color:var(--accent2);font-size:12px;font-weight:700;font-family:inherit;border-radius:12px;padding:8px 14px;cursor:pointer;transition:background .2s">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export
+      </button>
+    </div>
 
     <!-- Income -->
     <div style="font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px">Monthly Income</div>
@@ -978,7 +990,37 @@ select{
     </div>
   </div>
 </div>
-</div><!-- /app -->
+
+<!-- INCOME EDIT SHEET -->
+<div class="overlay" id="modal-income-edit" onclick="overlayTap(event,'modal-income-edit')">
+  <div class="sheet">
+    <div class="sheet-inner">
+      <div class="drag-handle"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <div style="font-size:18px;font-weight:800;color:var(--text)" id="income-edit-title"></div>
+        <button onclick="closeModal('modal-income-edit')" style="background:var(--bg4);border:none;border-radius:12px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:18px">×</button>
+      </div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:20px" id="income-edit-sub"></div>
+      <input type="hidden" id="income-edit-ym">
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px">
+        <div>
+          <div class="field-label">Income this month</div>
+          <input type="number" id="income-edit-income" step="100">
+        </div>
+        <div>
+          <div class="field-label">Amount saved (override)</div>
+          <input type="number" id="income-edit-saved" step="100">
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:16px;line-height:1.5">Leave blank to auto-calculate from transactions &amp; income settings.</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="btn-primary" onclick="saveIncomeEditModal()">Save</button>
+        <button class="btn-secondary" onclick="clearIncomeEdit()">Clear Overrides</button>
+        <button class="btn-secondary" onclick="closeModal('modal-income-edit')">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 // ==================== EMBEDDED TRANSACTION DATA ====================
@@ -995,7 +1037,8 @@ let state = {
   income: 8000,
   darkMode: true,
   nextId: 1,
-  excludedCats: []
+  excludedCats: [],
+  incomeLog: {}   // key: "YYYY-MM" or "YYYY" → { income: number, saved: number|null }
 };
 
 const _now = new Date();
@@ -1353,13 +1396,22 @@ function renderHero() {
     const clrDivider = isLight ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.15)';
     const clrWeekAmt = isLight ? '#4433cc' : '#c4b5fd';
     const clrYdAmt   = ydSpend>0 ? (isLight ? '#4433cc' : '#c4b5fd') : (isLight ? '#aaaaaa' : '#666688');
+
+    // Spend per day this month (excl Rent + Money Transfers)
+    const DAILY_EXCL2 = ['Rent','Money Transfer','Transfers & Gifts'];
+    const cmDailyAmt = txnsForYM(cm).filter(t=>!DAILY_EXCL2.includes(t.category)).reduce((s,t)=>s+t.amount,0);
+    const todayNum = NOW.getDate();
+    const spendPerDayVal = cmDailyAmt / Math.max(todayNum, 1);
+    const spendPerDayColor = isLight ? '#4433cc' : '#c4b5fd';
+
     insightEl.innerHTML = `
       <div style="display:flex;align-items:flex-start;gap:10px">
         <span style="font-size:26px;line-height:1;flex-shrink:0">🎯</span>
         <div style="flex:1;min-width:0">
           <div style="font-size:10px;font-weight:700;color:${clrLabel};text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px">Insights · ${ymLabel(cm)}</div>
-          <div style="font-size:12px;font-weight:500;color:${clrBody};line-height:1.5">
-            <span style="color:${clrStrong};font-weight:700">${diffLbl}</span>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:7px;border-bottom:1px solid ${clrDivider}">
+            <span style="font-size:10px;font-weight:600;color:${clrLabel};text-transform:uppercase;letter-spacing:.5px">$/Day this month <span style="font-weight:400;text-transform:none;opacity:.7">(excl. Rent &amp; Transfers)</span></span>
+            <span style="font-size:13px;font-weight:800;color:${spendPerDayColor}">${fmt(spendPerDayVal)}/day</span>
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between;margin-top:7px;padding-top:7px;border-top:1px solid ${clrDivider}">
             <span style="font-size:10px;font-weight:600;color:${clrLabel};text-transform:uppercase;letter-spacing:.5px">Last Week <span style="font-weight:400;text-transform:none;opacity:.7">(${lwLabel}, excl. Rent)</span></span>
@@ -1432,6 +1484,22 @@ function renderDayContext(cm) {
   const dowAvgs = dowTotByDow.map((tot,i)=>dowDayCount[i]>0?tot/dowDayCount[i]:0);
   const peakDow = dowAvgs.indexOf(Math.max(...dowAvgs));
 
+  // Spend per day this month (excluding Rent and Money Transfer)
+  const DAILY_EXCL = ['Rent','Money Transfer','Transfers & Gifts'];
+  const cmTxns = txnsForYM(cm);
+  const cmDailySpend = cmTxns
+    .filter(t => !DAILY_EXCL.includes(t.category))
+    .reduce((s,t) => s+t.amount, 0);
+  const daysElapsed = Math.max(today, 1);
+  const spendPerDay = cmDailySpend / daysElapsed;
+
+  // Savings last month
+  const pmAllTxns = txnsForYM(pm);
+  const pmTotalSpend = pmAllTxns.reduce((s,t) => s+t.amount, 0);
+  const incomeVal = state.income || 0;
+  const lastMonthSavings = incomeVal - pmTotalSpend;
+  const lastMonthSavColor = lastMonthSavings >= 0 ? 'var(--green)' : '#ff8a80';
+
   // Hero-style glassy gradient pills — same as hero card
   const PILL_BRD = 'rgba(255,255,255,.1)';
   const PILL_SH  = '0 4px 20px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.07)';
@@ -1447,8 +1515,8 @@ function renderDayContext(cm) {
 
   el.innerHTML =
     pill(`Day ${today} · Last mo`, fmt(pmByDay),              pmByDay > curSpent ? 'var(--green)' : '#ff8a80') +
-    pill('3-mo avg by now',        fmt(avgByDay),             avgByDay > curSpent ? 'var(--green)' : '#ff8a80') +
-    pill(`Peak: ${DOW[peakDow]}`,  `${fmtK(dowAvgs[peakDow])}/day`, 'var(--accent2)');
+    pill(`$/day this mo`,          `${fmtK(spendPerDay)}/day`, 'var(--accent2)') +
+    pill(`Savings · ${ymLabel(pm)}`, incomeVal > 0 ? fmt(Math.abs(lastMonthSavings)) : '—', lastMonthSavColor);
 }
 
 function renderBudgetList() {
@@ -1877,7 +1945,7 @@ function selectYear(yr) {
 
 function showTrends(name) {
   activeTrend = name;
-  ['overview','history','categories','merchants','insights'].forEach(t => {
+  ['overview','history','categories','merchants','insights','income'].forEach(t => {
     document.getElementById(`trends-${t}`).style.display = t===name ? 'block' : 'none';
   });
   // Highlight pills
@@ -1889,6 +1957,7 @@ function showTrends(name) {
   if (name==='categories') renderCatBreakdown();
   if (name==='merchants')  renderMerchants();
   if (name==='insights')   renderInsights();
+  if (name==='income')     renderIncomeTab();
 }
 
 function renderOverview() {
@@ -2285,10 +2354,167 @@ function saveIncome() {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// INCOME TAB
+// ═══════════════════════════════════════════════════════════════
+function renderIncomeTab() {
+  const el = document.getElementById('income-panel'); if (!el) return;
+  if (!state.incomeLog) state.incomeLog = {};
+
+  const allYMs2   = allYMs(); // newest first
+  const allYears2 = [...new Set(allYMs2.map(ym => ym.substring(0,4)))].sort((a,b) => b-a);
+  const inc       = state.income || 0;
+  const yearsToShow = (selYear === 'ALL') ? allYears2 : allYears2.filter(y => y === String(selYear));
+
+  if (!yearsToShow.length) {
+    el.innerHTML = `<div style="text-align:center;padding:40px 0;color:var(--text2);font-size:13px">No data for this period.</div>`;
+    return;
+  }
+
+  // ── Summary banner (total across shown years) ──
+  const shownMonths = yearsToShow.flatMap(yr => allYMs2.filter(ym => ym.startsWith(yr)));
+  const totalSpend  = shownMonths.reduce((s,ym) => s + txnsForYM(ym).reduce((a,t)=>a+t.amount,0), 0);
+  const totalIncome = yearsToShow.reduce((s,yr) => {
+    const yrLog = state.incomeLog[`yr:${yr}`] || {};
+    const mths  = allYMs2.filter(ym=>ym.startsWith(yr));
+    return s + (yrLog.income != null ? yrLog.income : inc * mths.length);
+  }, 0);
+  const totalSaved  = totalIncome - totalSpend;
+  const savCol      = totalSaved >= 0 ? 'var(--green)' : 'var(--red)';
+  const savRate     = totalIncome > 0 ? (totalSaved / totalIncome * 100).toFixed(1) : '0.0';
+
+  let html = `
+    <div class="budget-cat-card" style="margin-bottom:16px;background:linear-gradient(135deg,rgba(124,111,247,.12),rgba(0,212,160,.07));border-color:rgba(124,111,247,.25);cursor:default">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:42px;height:42px;border-radius:14px;background:rgba(124,111,247,.18);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">💼</div>
+        <div style="flex:1">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="font-size:14px;font-weight:700">${selYear === 'ALL' ? 'All Time' : selYear}</div>
+            <div style="font-size:15px;font-weight:800;color:${savCol}">${totalSaved>=0?'':'−'}${fmt(Math.abs(totalSaved))}</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px">
+            <div style="font-size:11px;color:var(--text2)">${fmt(totalIncome)} income · ${fmt(totalSpend)} spent</div>
+            <div style="font-size:11px;font-weight:700;color:${savCol}">${totalSaved>=0?'💰':'🔴'} ${Math.abs(savRate)}% saved</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  // ── Per-year sections ──
+  yearsToShow.forEach(yr => {
+    const yrKey    = `yr:${yr}`;
+    const yrLog    = state.incomeLog[yrKey] || {};
+    const yrMonths = allYMs2.filter(ym => ym.startsWith(yr));
+    const yrSpend  = yrMonths.reduce((s,ym) => s + txnsForYM(ym).reduce((a,t)=>a+t.amount,0), 0);
+    const yrIncome = yrLog.income != null ? yrLog.income : inc * yrMonths.length;
+    const yrSaved  = yrLog.saved  != null ? yrLog.saved  : yrMonths.reduce((s,ym) => {
+      const mLog = state.incomeLog[ym] || {};
+      const ms   = txnsForYM(ym).reduce((a,t)=>a+t.amount,0);
+      const mi   = mLog.income != null ? mLog.income : inc;
+      return s + (mLog.saved != null ? mLog.saved : mi - ms);
+    }, 0);
+    const yrSavCol = yrSaved >= 0 ? 'var(--green)' : 'var(--red)';
+
+    // Show year header only in ALL view
+    if (selYear === 'ALL') {
+      html += `
+      <div style="font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.5px;text-transform:uppercase;margin:16px 0 8px;padding:0 2px">${yr}
+        <span style="font-weight:500;color:var(--text3);margin-left:6px">${fmt(yrIncome)} income · ${yrSaved>=0?'💰':'🔴'} ${fmt(Math.abs(yrSaved))} ${yrSaved>=0?'saved':'deficit'}</span>
+      </div>`;
+    }
+
+    // ── Month rows ──
+    yrMonths.forEach(ym => {
+      const mLog    = state.incomeLog[ym] || {};
+      const mSpend  = txnsForYM(ym).reduce((s,t)=>s+t.amount,0);
+      const mIncome = mLog.income != null ? mLog.income : inc;
+      const mSaved  = mLog.saved  != null ? mLog.saved  : mIncome - mSpend;
+      const mSavCol = mSaved >= 0 ? 'var(--green)' : 'var(--red)';
+      const mSavRate= mIncome > 0 ? (mSaved/mIncome*100).toFixed(0) : 0;
+      const hasOverride = mLog.income != null || mLog.saved != null;
+
+      html += `
+      <div class="budget-cat-card" onclick="openIncomeEdit('${ym}')" style="cursor:pointer">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:42px;height:42px;border-radius:14px;background:${mSavCol === 'var(--green)' ? 'rgba(0,212,160,.12)' : 'rgba(255,107,107,.1)'};display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0">${mSaved>=0?'💰':'🔴'}</div>
+          <div style="flex:1">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div style="font-size:14px;font-weight:700">${ymLabel(ym)}</div>
+              <div style="font-size:15px;font-weight:800;color:${mSavCol}">${mSaved>=0?'':'−'}${fmt(Math.abs(mSaved))}</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px">
+              <div style="font-size:11px;color:var(--text2)">${fmt(mIncome)} income · ${fmt(mSpend)} spent${hasOverride?' · <span style="color:var(--accent2)">edited</span>':''}</div>
+              <div style="font-size:11px;font-weight:700;color:${mSavCol}">${Math.abs(mSavRate)}%</div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    });
+  });
+
+  el.innerHTML = html;
+}
+
+// ── Inline edit sheet for a single month ──
+function openIncomeEdit(ym) {
+  if (!state.incomeLog) state.incomeLog = {};
+  const mLog    = state.incomeLog[ym] || {};
+  const inc     = state.income || 0;
+  const mSpend  = txnsForYM(ym).reduce((s,t)=>s+t.amount,0);
+  const mIncome = mLog.income != null ? mLog.income : inc;
+  const mSaved  = mLog.saved  != null ? mLog.saved  : mIncome - mSpend;
+
+  document.getElementById('income-edit-title').textContent  = ymLabel(ym);
+  document.getElementById('income-edit-sub').textContent    = `${txnsForYM(ym).length} transactions · spent ${fmt(mSpend)}`;
+  document.getElementById('income-edit-ym').value           = ym;
+  document.getElementById('income-edit-income').value       = mLog.income != null ? mLog.income : '';
+  document.getElementById('income-edit-income').placeholder = String(Math.round(mIncome));
+  document.getElementById('income-edit-saved').value        = mLog.saved  != null ? mLog.saved  : '';
+  document.getElementById('income-edit-saved').placeholder  = String(Math.round(mSaved));
+  openModal('modal-income-edit');
+}
+
+function saveIncomeEditModal() {
+  const ym      = document.getElementById('income-edit-ym').value;
+  const incVal  = document.getElementById('income-edit-income').value;
+  const savVal  = document.getElementById('income-edit-saved').value;
+  if (!state.incomeLog) state.incomeLog = {};
+  if (!state.incomeLog[ym]) state.incomeLog[ym] = {};
+  if (incVal !== '') state.incomeLog[ym].income = parseFloat(incVal);
+  else delete state.incomeLog[ym].income;
+  if (savVal !== '') state.incomeLog[ym].saved = parseFloat(savVal);
+  else delete state.incomeLog[ym].saved;
+  save();
+  closeModal('modal-income-edit');
+  renderIncomeTab();
+}
+
+function clearIncomeEdit() {
+  const ym = document.getElementById('income-edit-ym').value;
+  if (!state.incomeLog) return;
+  delete state.incomeLog[ym];
+  save();
+  closeModal('modal-income-edit');
+  renderIncomeTab();
+}
+
+function saveIncomeLog(key, incInputId, savInputId) {
+  if (!state.incomeLog) state.incomeLog = {};
+  const incVal = document.getElementById(incInputId)?.value;
+  const savVal = document.getElementById(savInputId)?.value;
+  if (!state.incomeLog[key]) state.incomeLog[key] = {};
+  if (incVal !== '' && incVal != null) state.incomeLog[key].income = parseFloat(incVal);
+  else delete state.incomeLog[key].income;
+  if (savVal !== '' && savVal != null) state.incomeLog[key].saved  = parseFloat(savVal);
+  else delete state.incomeLog[key].saved;
+  save();
+  renderIncomeTab();
+}
+
+// ═══════════════════════════════════════════════════════════════
 // IMPORT / EXPORT
 // ═══════════════════════════════════════════════════════════════
 function exportData() {
-  const blob=new Blob([JSON.stringify({transactions:state.transactions,budgets:state.budgets,rules:state.rules,income:state.income},null,2)],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({transactions:state.transactions,budgets:state.budgets,rules:state.rules,income:state.income,incomeLog:state.incomeLog||{}},null,2)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
   const d=new Date(); const localDate=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   a.download=`spendwise_backup_${localDate}.json`; a.click();
@@ -2302,6 +2528,7 @@ function importData(e) {
       if (d.budgets) state.budgets=d.budgets;
       if (d.rules) state.rules=d.rules;
       if (d.income) state.income=d.income;
+      if (d.incomeLog) state.incomeLog=d.incomeLog;
       state.nextId=Math.max(...state.transactions.map(t=>t.id||0))+1;
       renderAll(); populateSelects(); save(); alert('Imported!');
     } catch { alert('Invalid file'); }
