@@ -1620,7 +1620,7 @@ function renderDayContext(cm) {
 
   el.innerHTML =
     pill(`Day ${today} · Last mo`, fmt(pmByDay),              pmByDay > curSpent ? 'var(--green)' : '#ff8a80') +
-    pill(`Proj. Saving`, (() => { const inc=state.income||0; if(!inc) return '—'; const lastDay=new Date(NOW.getFullYear(),NOW.getMonth()+1,0).getDate(); const projTotal=(cmDailySpend/daysElapsed)*lastDay; const proj=inc-projTotal; const c=proj>=0?'var(--green)':'#ff8a80'; return `<span style='color:${c}'>${proj>=0?'+':'-'}${fmtK(Math.abs(proj))}</span>`; })(), 'var(--accent2)') +
+    pill(`Proj. Saving`, (() => { const inc=state.income||0; if(!inc) return '—'; const lastDay=new Date(NOW.getFullYear(),NOW.getMonth()+1,0).getDate(); const allSpentCm=txnsForYM(cm).reduce((s,t)=>s+t.amount,0); const projTotal=(allSpentCm/daysElapsed)*lastDay; const proj=inc-projTotal; const c=proj>=0?'var(--green)':'#ff8a80'; return `<span style='color:${c}'>${proj>=0?'+':'-'}${fmtK(Math.abs(proj))}</span>`; })(), 'var(--accent2)') +
     pill(`Savings · ${ymLabel(pm)}`, incomeVal > 0 ? fmt(Math.abs(lastMonthSavings)) : '—', lastMonthSavColor);
 }
 
