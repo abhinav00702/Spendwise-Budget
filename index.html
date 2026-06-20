@@ -415,19 +415,80 @@ select{
 }
 .search-ico{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none}
 
-/* ── INSIGHT CARD ── */
+/* ── INSIGHT CARD (redesigned) ── */
 .insight{
-  background:var(--card);
+  display:flex;align-items:flex-start;gap:12px;
+  background:var(--bg3);
   border:1px solid var(--border);
-  border-radius:16px;padding:14px 16px;margin-bottom:10px;
+  border-radius:18px;padding:14px 16px;margin-bottom:10px;
+  transition:border-color .2s,transform .15s;
+  position:relative;overflow:hidden;
+}
+.insight::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(124,111,247,.35),transparent);
+  pointer-events:none;
 }
 .light .insight{
   background:#ffffff;
   border:1px solid rgba(0,0,0,0.07);
   box-shadow:0 2px 16px rgba(0,0,0,0.06);
 }
+.insight-badge{
+  width:36px;height:36px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+  background:rgba(124,111,247,.13);
+}
 .insight-icon{display:none}
-.insight-text{font-size:13px;font-weight:500;line-height:1.5}
+.insight-body{flex:1;min-width:0}
+.insight-text{font-size:13px;font-weight:500;line-height:1.55;color:var(--text)}
+.insight-meta{font-size:10.5px;color:var(--text3);font-weight:600;margin-top:4px;text-transform:uppercase;letter-spacing:.3px}
+
+/* insight type colors */
+.insight.type-savings .insight-badge{background:rgba(0,212,160,.14)}
+.insight.type-alert   .insight-badge{background:rgba(255,107,107,.14)}
+.insight.type-warn    .insight-badge{background:rgba(255,186,8,.14)}
+.insight.type-trend   .insight-badge{background:rgba(124,111,247,.14)}
+.insight.type-info    .insight-badge{background:rgba(120,120,180,.12)}
+
+/* ── HISTORICAL SECTION ── */
+.hist-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin:24px 0 12px;
+}
+.hist-header-title{font-size:13px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.hist-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.hist-stat{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:16px;padding:14px;
+}
+.light .hist-stat{background:#fff;border:1px solid rgba(0,0,0,.07);box-shadow:0 2px 10px rgba(0,0,0,.05)}
+.hist-stat-val{font-size:18px;font-weight:800;color:var(--text);letter-spacing:-.5px}
+.hist-stat-lbl{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-top:3px}
+.hist-cat-row{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 0;border-bottom:1px solid var(--border);
+}
+.hist-cat-row:last-child{border-bottom:none}
+.hist-cat-icon{width:34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.hist-cat-bar-wrap{flex:1;min-width:0}
+.hist-cat-name{font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hist-cat-track{height:5px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.light .hist-cat-track{background:#eeeef8}
+.hist-cat-fill{height:100%;border-radius:3px;transition:width .7s cubic-bezier(.4,0,.2,1)}
+.hist-cat-amt{font-size:12px;font-weight:800;color:var(--text);flex-shrink:0;text-align:right}
+.hist-cat-sub{font-size:10px;color:var(--text3);text-align:right}
+
+/* section divider */
+.insight-section-title{
+  font-size:11px;font-weight:800;color:var(--text2);
+  text-transform:uppercase;letter-spacing:.6px;
+  margin:20px 0 10px;display:flex;align-items:center;gap:8px;
+}
+.insight-section-title::after{
+  content:'';flex:1;height:1px;background:var(--border);
+}
 /* ── ADD TXN CATEGORY PILLS ── */
 .cat-pill-btn:active{transform:scale(.94) !important}
 .light .cat-pill-btn{background:var(--bg4) !important;border-color:#e0e0f0 !important;color:var(--text2) !important}
@@ -2501,19 +2562,18 @@ function renderMerchants() {
   }).join('');
 }
 
-// ── INSIGHTS ──
+// ── INSIGHTS (redesigned) ──
 function renderInsights() {
   const income   = state.income || 0;
   const exc      = state.excludedCats || [];
   const insights = [];
 
-  // Determine which year context we're in
-  const insYear  = selYear === 'ALL' ? String(NOW.getFullYear()) : String(selYear);
-  const isCurrentYear = insYear === String(NOW.getFullYear());
-  const cm       = currentYM();
-  const pm       = prevYM(cm);
+  const insYear        = selYear === 'ALL' ? String(NOW.getFullYear()) : String(selYear);
+  const isCurrentYear  = insYear === String(NOW.getFullYear());
+  const cm             = currentYM();
+  const pm             = prevYM(cm);
 
-  // ── Current-month insights (only when viewing current year or ALL) ──
+  // ── Current-month insights ──
   if (isCurrentYear || selYear === 'ALL') {
     const txns     = txnsForYM(cm);
     const ptxns    = txnsForYM(pm);
@@ -2522,23 +2582,37 @@ function renderInsights() {
     const today    = NOW.getDate();
     const lastDay  = new Date(NOW.getFullYear(), NOW.getMonth()+1, 0).getDate();
     const daysLeft = lastDay - today;
-
-    // Savings this month
     const totalSpent = txns.reduce((s,t)=>s+t.amount, 0);
     const savings    = income - totalSpent;
     const savRate    = income > 0 ? (savings/income*100).toFixed(1) : 0;
+
     if (income > 0) {
-      insights.push({icon:savings>=0?'💰':'🔴', text:`<b>Savings this month (${ymLabel(cm)}):</b> ${fmt(Math.abs(savings))} ${savings>=0?'saved':'deficit'} — ${Math.abs(savRate)}% ${savings>=0?'savings rate':'over income'}`});
+      insights.push({
+        icon: savings>=0?'💰':'🔴',
+        type: savings>=0?'savings':'alert',
+        label: ymLabel(cm),
+        text: `<b>${savings>=0?'On track':'Over budget'} this month</b> — ${fmt(Math.abs(savings))} ${savings>=0?'saved':'deficit'} · <b>${Math.abs(savRate)}%</b> ${savings>=0?'savings rate':'over income'}`
+      });
       const pmTotal   = ptxns.reduce((s,t)=>s+t.amount, 0);
       const pmSavings = income - pmTotal;
       if (pmTotal > 0) {
         const diff = savings - pmSavings;
-        insights.push({icon:diff>=0?'📈':'📉', text:`Saving ${diff>=0?fmt(diff)+' more':fmt(Math.abs(diff))+' less'} than ${ymLabel(pm)}`});
+        insights.push({
+          icon: diff>=0?'📈':'📉',
+          type: diff>=0?'savings':'trend',
+          label: `vs ${ymLabel(pm)}`,
+          text: `Saving <b>${diff>=0?fmt(diff)+' more':fmt(Math.abs(diff))+' less'}</b> than last month`
+        });
       }
       if (today > 0) {
         const projSpend = (totalSpent/today)*lastDay;
         const projSav   = income - projSpend;
-        insights.push({icon:'🔮', text:`Projected month-end savings: <b>${fmt(Math.abs(projSav))}</b> ${projSav>=0?'saved':'deficit'} (${(Math.abs(projSav)/income*100).toFixed(1)}% of income)`});
+        insights.push({
+          icon: '🔮',
+          type: 'trend',
+          label: 'Projection',
+          text: `Month-end forecast: <b>${fmt(Math.abs(projSav))}</b> ${projSav>=0?'saved':'deficit'} at current pace`
+        });
       }
     }
 
@@ -2546,40 +2620,42 @@ function renderInsights() {
     Object.keys(spent).forEach(cat => {
       if (pSpent[cat] && pSpent[cat] > 20) {
         const diff = ((spent[cat]-pSpent[cat])/pSpent[cat]*100);
-        if (Math.abs(diff) > 15) insights.push({icon:diff>0?'📈':'📉', text:`<b>${cat}</b> ${diff>0?'up':'down'} ${Math.abs(diff).toFixed(0)}% vs ${ymLabel(pm)} (${fmt(Math.abs(spent[cat]-pSpent[cat]))})`});
+        if (Math.abs(diff) > 15) insights.push({
+          icon: diff>0?'📈':'📉',
+          type: diff>0?'warn':'savings',
+          label: cat,
+          text: `<b>${cat}</b> is ${diff>0?'up':'down'} <b>${Math.abs(diff).toFixed(0)}%</b> vs ${ymLabel(pm)} (${fmt(Math.abs(spent[cat]-pSpent[cat]))})`
+        });
       }
     });
 
     // Budget alerts
     Object.keys(state.budgets).filter(c=>!exc.includes(c)).forEach(cat => {
       const lim = Number(state.budgets[cat]); const s = spent[cat] || 0;
-      if (s > lim && lim > 0) insights.push({icon:'🚨', text:`<b>${cat}</b> over budget by ${fmt(s-lim)}`});
-      else if (s > lim*.85 && lim > 0) insights.push({icon:'⚠️', text:`<b>${cat}</b> at ${Math.round(s/lim*100)}% — ${fmt(lim-s)} left with ${daysLeft} days remaining`});
+      if (s > lim && lim > 0) insights.push({icon:'🚨', type:'alert', label:'Over budget', text:`<b>${cat}</b> exceeded by <b>${fmt(s-lim)}</b> (${Math.round(s/lim*100)}% of budget used)`});
+      else if (s > lim*.85 && lim > 0) insights.push({icon:'⚠️', type:'warn', label:'Budget warning', text:`<b>${cat}</b> at <b>${Math.round(s/lim*100)}%</b> — only ${fmt(lim-s)} left · ${daysLeft} days remaining`});
       else if (s > 0 && lim > 0 && today > 0) {
         const daily = s/today; const projDay = Math.floor(lim/daily);
-        if (projDay < lastDay && projDay > today) insights.push({icon:'🔮', text:`At this pace <b>${cat}</b> budget exceeded around the <b>${projDay}th</b>`});
+        if (projDay < lastDay && projDay > today) insights.push({icon:'🔮', type:'warn', label:'Pace alert', text:`At this pace <b>${cat}</b> budget runs out around the <b>${projDay}th</b>`});
       }
     });
 
     const topCat = Object.entries(spent).sort((a,b)=>b[1]-a[1])[0];
-    if (topCat) insights.push({icon:'🏆', text:`Biggest spend this month: <b>${topCat[0]}</b> at ${fmt(topCat[1])}`});
+    if (topCat) insights.push({icon:'🏆', type:'info', label:'Top category', text:`Biggest spend in ${ymLabel(cm)}: <b>${topCat[0]}</b> at <b>${fmt(topCat[1])}</b>`});
   }
 
-  // ── Year-level summary (always shown, respects selYear) ──
+  // ── Year-level summary ──
   const yrYMs     = allYMs().filter(ym => ym.startsWith(insYear));
   const yrSpend   = txnsForYearExcl(insYear).reduce((s,t)=>s+t.amount, 0);
   const yrIncome  = income * yrYMs.length;
   const yrSaved   = yrIncome > 0 ? yrIncome - yrSpend : null;
 
   if (yrYMs.length > 0) {
-    insights.push({icon:'📅', text:`<b>${insYear} total spend:</b> ${fmt(yrSpend)} across ${yrYMs.length} month${yrYMs.length!==1?'s':''}`});
-    if (yrSaved !== null) {
-      insights.push({icon:yrSaved>=0?'💼':'🔴', text:`<b>${insYear} estimated savings:</b> ${fmt(Math.abs(yrSaved))} ${yrSaved>=0?'saved':'deficit'} (${(Math.abs(yrSaved)/yrIncome*100).toFixed(1)}% of income)`});
-    }
-    // Category breakdown for selected year
+    insights.push({icon:'📅', type:'info', label:`${insYear} summary`, text:`Total spend: <b>${fmt(yrSpend)}</b> across <b>${yrYMs.length}</b> month${yrYMs.length!==1?'s':''}`});
+    if (yrSaved !== null) insights.push({icon:yrSaved>=0?'💼':'🔴', type:yrSaved>=0?'savings':'alert', label:`${insYear} savings`, text:`Estimated savings: <b>${fmt(Math.abs(yrSaved))}</b> ${yrSaved>=0?'saved':'deficit'} (${(Math.abs(yrSaved)/yrIncome*100).toFixed(1)}% of income)`});
     const yrByCat  = sumByCat(txnsForYearExcl(insYear));
     const topYrCat = Object.entries(yrByCat).sort((a,b)=>b[1]-a[1])[0];
-    if (topYrCat) insights.push({icon:'🏆', text:`Biggest ${insYear} category: <b>${topYrCat[0]}</b> — ${fmt(topYrCat[1])}`});
+    if (topYrCat) insights.push({icon:'🏆', type:'info', label:`${insYear} top category`, text:`Biggest ${insYear} category: <b>${topYrCat[0]}</b> — ${fmt(topYrCat[1])}`});
   }
 
   // ── YoY comparison ──
@@ -2587,13 +2663,108 @@ function renderInsights() {
   const prevYearSpend = txnsForYearExcl(prevYear).reduce((s,t)=>s+t.amount, 0);
   if (prevYearSpend > 0 && yrSpend > 0) {
     const yoyDiff = ((yrSpend-prevYearSpend)/prevYearSpend*100).toFixed(0);
-    insights.push({icon:'📊', text:`${insYear} spend ${yoyDiff>0?'+':''}${yoyDiff}% vs ${prevYear} (${fmt(prevYearSpend)} → ${fmt(yrSpend)})`});
+    insights.push({icon:'📊', type:'trend', label:'Year over year', text:`${insYear} spend <b>${yoyDiff>0?'+':''}${yoyDiff}%</b> vs ${prevYear} — ${fmt(prevYearSpend)} → ${fmt(yrSpend)}`});
   }
 
+  // ── Build historical averages ──
+  const histHTML = buildHistoricalSection();
+
   const el = document.getElementById('insights-list'); if (!el) return;
-  el.innerHTML = insights.length
-    ? insights.map(i => `<div class="insight"><div class="insight-text"><span style="font-size:18px;margin-right:6px">${i.icon}</span>${i.text}</div></div>`).join('')
+
+  const insightsHTML = insights.length
+    ? `<div class="insight-section-title">Smart Insights</div>` +
+      insights.map(i => {
+        const typeClass = `type-${i.type||'info'}`;
+        const badgeColors = {savings:'rgba(0,212,160,.18)',alert:'rgba(255,107,107,.18)',warn:'rgba(255,186,8,.18)',trend:'rgba(124,111,247,.18)',info:'rgba(120,120,200,.14)'};
+        const bc = badgeColors[i.type||'info']||badgeColors.info;
+        return `<div class="insight ${typeClass}">
+          <div class="insight-badge" style="background:${bc}">${i.icon}</div>
+          <div class="insight-body">
+            ${i.label?`<div class="insight-meta">${i.label}</div>`:''}
+            <div class="insight-text">${i.text}</div>
+          </div>
+        </div>`;
+      }).join('')
     : '<div style="color:var(--text2);font-size:13px;padding:20px 0">Not enough data for insights yet.</div>';
+
+  el.innerHTML = insightsHTML + histHTML;
+}
+
+function buildHistoricalSection() {
+  // Determine scope
+  const allTxnYMs   = allYMs(); // all months with data, newest first
+  let scopeYMs;
+  if (selYear === 'ALL') {
+    scopeYMs = allTxnYMs;
+  } else {
+    scopeYMs = allTxnYMs.filter(ym => ym.startsWith(String(selYear)));
+  }
+  if (!scopeYMs.length) return '';
+
+  const scopeLabel = selYear === 'ALL' ? 'All Time' : String(selYear);
+  const numMonths  = scopeYMs.length;
+
+  // Total spend per month → averages
+  const monthlyTotals = scopeYMs.map(ym => txnsForYMExcl(ym).reduce((s,t)=>s+t.amount,0));
+  const avgMonthly    = monthlyTotals.reduce((s,v)=>s+v,0) / numMonths;
+  const maxMonthly    = Math.max(...monthlyTotals);
+  const minMonthly    = Math.min(...monthlyTotals);
+
+  // Avg per category per month
+  const catTotals = {};
+  scopeYMs.forEach(ym => {
+    const byC = sumByCat(txnsForYMExcl(ym));
+    Object.entries(byC).forEach(([c,v]) => { catTotals[c] = (catTotals[c]||0)+v; });
+  });
+  const catAvgs = Object.entries(catTotals)
+    .map(([c,tot]) => ({cat:c, avg: tot/numMonths, total:tot}))
+    .sort((a,b)=>b.avg-a.avg);
+  const topAvg = catAvgs[0]?.avg || 1;
+
+  // High/low months
+  const maxIdx = monthlyTotals.indexOf(maxMonthly);
+  const minIdx = monthlyTotals.indexOf(minMonthly);
+  const maxYM  = scopeYMs[maxIdx];
+  const minYM  = scopeYMs[minIdx];
+
+  const statCards = [
+    { val: fmt(avgMonthly), lbl: 'Avg / Month', color:'var(--accent)' },
+    { val: fmt(maxMonthly), lbl: `Highest (${ymLabel(maxYM)})`, color:'var(--red)' },
+    { val: fmt(minMonthly), lbl: `Lowest (${ymLabel(minYM)})`, color:'var(--green)' },
+    { val: numMonths,       lbl: 'Months tracked', color:'var(--text2)' },
+  ];
+
+  const statsHTML = `<div class="hist-stat-grid">
+    ${statCards.map(s=>`
+      <div class="hist-stat">
+        <div class="hist-stat-val" style="color:${s.color}">${s.val}</div>
+        <div class="hist-stat-lbl">${s.lbl}</div>
+      </div>`).join('')}
+  </div>`;
+
+  const catsHTML = catAvgs.slice(0,10).map(({cat,avg}) => {
+    const color = catColor(cat);
+    const pct   = Math.round(avg/topAvg*100);
+    return `<div class="hist-cat-row">
+      <div class="hist-cat-icon" style="background:${color}18">${catIcon(cat)}</div>
+      <div class="hist-cat-bar-wrap">
+        <div class="hist-cat-name">${cat}</div>
+        <div class="hist-cat-track"><div class="hist-cat-fill" style="width:${pct}%;background:${color}"></div></div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;margin-left:10px">
+        <div class="hist-cat-amt" style="color:${color}">${fmt(avg)}</div>
+        <div class="hist-cat-sub">avg/mo</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  return `
+    <div class="insight-section-title" style="margin-top:28px">Historical Averages · ${scopeLabel}</div>
+    ${statsHTML}
+    <div class="card" style="padding:16px 16px 4px;margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">Avg Monthly Spend by Category</div>
+      ${catsHTML}
+    </div>`;
 }
 
 
