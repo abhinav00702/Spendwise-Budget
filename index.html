@@ -618,7 +618,10 @@ select{
             <div id="hero-left-dot" style="width:6px;height:6px;border-radius:50%;background:var(--green)"></div>
             <span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.85)" id="hero-left">$0 left</span>
           </div>
-          <div id="hero-savings" style="margin-top:8px;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.06);border:1px solid rgba(34,211,160,.3);border-radius:10px;padding:5px 10px;width:fit-content"></div>
+          <div style="margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:nowrap">
+            <div id="hero-savings" style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.06);border:1px solid rgba(34,211,160,.3);border-radius:10px;padding:5px 10px;flex:1;min-width:0;overflow:hidden"></div>
+          </div>
+          <div id="hero-top-cat" style="margin-top:6px;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:5px 10px;width:fit-content"></div>
         </div>
       </div>
     </div>
@@ -975,7 +978,14 @@ select{
         <div><div class="field-label">Date</div><input type="date" id="edit-date"></div>
         <div><div class="field-label">Notes</div><input type="text" id="edit-notes" placeholder="Optional"></div>
       </div>
-      <div style="display:flex;flex-direction:column;gap:8px;margin-top:20px">
+      <div id="edit-excl-toggle" style="margin-top:16px;padding:10px 14px;border-radius:12px;background:var(--bg4);border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--text)">Exclude from calculations</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:2px">Won't count toward budget, savings, or charts</div>
+        </div>
+        <button id="excl-btn" onclick="toggleEditTxnExclude()" style="border:none;border-radius:10px;padding:7px 14px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">Exclude</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
         <button class="btn-primary" onclick="saveEdit()">Save Changes</button>
         <button class="btn-danger" onclick="deleteTxn()">Delete Transaction</button>
         <button class="btn-secondary" onclick="closeModal('modal-edit')">Cancel</button>
@@ -1088,7 +1098,8 @@ let state = {
   excludedCats: [],
   incomeLog: {},   // key: "YYYY-MM" or "YYYY" → { income: number, saved: number|null }
   customCategories: [],
-  categoryRenames: {}   // oldName → newName mapping for export/import round-trip
+  categoryRenames: {},   // oldName → newName mapping for export/import round-trip
+  excludedTxnIds: []    // array of transaction ids excluded from all calculations
 };
 
 const _now = new Date();
@@ -1336,8 +1347,17 @@ function renderAll() {
 // helper — spending excluding certain categories
 // filter txns removing excluded categories
 function txnsExcluded(txns) {
-  const exc = state.excludedCats || [];
-  return exc.length ? txns.filter(t => !exc.includes(t.category)) : txns;
+  const exc    = state.excludedCats || [];
+  const excIds = state.excludedTxnIds || [];
+  return txns.filter(t => !exc.includes(t.category) && !excIds.includes(t.id));
+}
+function isTxnExcluded(id) { return (state.excludedTxnIds||[]).includes(id); }
+function toggleTxnExclude(id) {
+  if (!state.excludedTxnIds) state.excludedTxnIds = [];
+  const idx = state.excludedTxnIds.indexOf(id);
+  if (idx === -1) state.excludedTxnIds.push(id);
+  else state.excludedTxnIds.splice(idx, 1);
+  renderAll(); save();
 }
 function txnsForYMExcl(ym)   { return txnsExcluded(txnsForYM(ym)); }
 function txnsForYearExcl(yr) { return yr==='ALL' ? txnsExcluded(state.transactions) : txnsExcluded(txnsForYear(yr)); }
@@ -1380,10 +1400,24 @@ function renderHero() {
     const savIcon  = savings >= 0 ? '💰' : '⚠';
     savEl.innerHTML = `
       <div style="width:6px;height:6px;border-radius:50%;background:${savColor};flex-shrink:0"></div>
-      <span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.85)">
-        ${savIcon} ${savings>=0?'Saving '+fmt(savings):'Deficit '+fmt(-savings)} this month
-      </span>`;
+      <span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.85);white-space:nowrap">${savIcon} ${savings>=0?'Saved '+fmtK(savings):'Deficit '+fmtK(-savings)}</span>`;
     savEl.style.borderColor = savings >= 0 ? 'rgba(34,211,160,.3)' : 'rgba(255,107,107,.3)';
+  }
+
+  // Top category (excl Rent + Money Transfer)
+  const HERO_SKIP = ['Rent','Money Transfer','Transfers & Gifts'];
+  const heroByCat = txns.filter(t=>!HERO_SKIP.includes(t.category))
+    .reduce((acc,t)=>{ acc[t.category]=(acc[t.category]||0)+t.amount; return acc; },{});
+  const heroTopEntry = Object.entries(heroByCat).sort((a,b)=>b[1]-a[1])[0];
+  const topCatEl = document.getElementById('hero-top-cat');
+  if (topCatEl) {
+    if (heroTopEntry) {
+      const [tc, ta] = heroTopEntry;
+      topCatEl.style.display = 'flex';
+      topCatEl.innerHTML = `<span style="font-size:14px">${catIcon(tc)}</span><span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.85);white-space:nowrap">${tc} · ${fmtK(ta)}</span>`;
+    } else {
+      topCatEl.style.display = 'none';
+    }
   }
 
   // Ring animation
@@ -1470,7 +1504,7 @@ function renderHero() {
         <div style="flex:1;min-width:0">
           <div style="font-size:10px;font-weight:700;color:${clrLabel};text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px">Insights · ${ymLabel(cm)}</div>
           <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:7px;border-bottom:1px solid ${clrDivider}">
-            <span style="font-size:10px;font-weight:600;color:${clrLabel};text-transform:uppercase;letter-spacing:.5px">$/Day this month <span style="font-weight:400;text-transform:none;opacity:.7">(excl. Rent &amp; Transfers)</span></span>
+            <span style="font-size:10px;font-weight:600;color:${clrLabel};text-transform:uppercase;letter-spacing:.5px">$/Day (excl. Rent)</span>
             <span style="font-size:13px;font-weight:800;color:${spendPerDayColor}">${fmt(spendPerDayVal)}/day</span>
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between;margin-top:7px">
@@ -1586,7 +1620,7 @@ function renderDayContext(cm) {
 
   el.innerHTML =
     pill(`Day ${today} · Last mo`, fmt(pmByDay),              pmByDay > curSpent ? 'var(--green)' : '#ff8a80') +
-    pill(`Avg · 3mo/day`, avgByDay3Day > 0 ? `${fmtK(avgByDay3Day)}/day` : '—', 'var(--accent2)') +
+    pill(`Proj. Saving`, (() => { const inc=state.income||0; if(!inc) return '—'; const lastDay=new Date(NOW.getFullYear(),NOW.getMonth()+1,0).getDate(); const projTotal=(cmDailySpend/daysElapsed)*lastDay; const proj=inc-projTotal; const c=proj>=0?'var(--green)':'#ff8a80'; return `<span style='color:${c}'>${proj>=0?'+':'-'}${fmtK(Math.abs(proj))}</span>`; })(), 'var(--accent2)') +
     pill(`Savings · ${ymLabel(pm)}`, incomeVal > 0 ? fmt(Math.abs(lastMonthSavings)) : '—', lastMonthSavColor);
 }
 
@@ -1595,16 +1629,25 @@ function renderBudgetList() {
   const cm  = currentYM();
   const spent = sumByCat(txnsForYM(cm));
   const exc = state.excludedCats || [];
+
+  // Categories with a set budget (not excluded)
   const budgeted = Object.keys(state.budgets).filter(c => state.budgets[c]>0 && !exc.includes(c));
-  if (!budgeted.length) { el.innerHTML='<div style="padding:20px;text-align:center;color:var(--text2);font-size:13px">No budgets set. Go to Settings.</div>'; return; }
+
+  // Categories with spend THIS month but NO budget set (and not excluded)
+  const nobudget = Object.keys(spent).filter(c => !exc.includes(c) && !(state.budgets[c]>0) && spent[c]>0);
+
+  if (!budgeted.length && !nobudget.length) {
+    el.innerHTML='<div style="padding:20px;text-align:center;color:var(--text2);font-size:13px">No transactions this month.</div>'; return;
+  }
 
   budgeted.sort((a,b) => {
     const pa = (spent[a]||0)/state.budgets[a];
     const pb = (spent[b]||0)/state.budgets[b];
     return pb - pa;
   });
+  nobudget.sort((a,b) => (spent[b]||0) - (spent[a]||0));
 
-  el.innerHTML = budgeted.map(cat => {
+  const budgetedHTML = budgeted.map(cat => {
     const limit = Number(state.budgets[cat]);
     const s = spent[cat] || 0;
     const p = limit > 0 ? (s/limit)*100 : 0;
@@ -1627,15 +1670,34 @@ function renderBudgetList() {
           </div>
         </div>
       </div>
-      <div class="prog-track">
-        <div class="prog-fill" style="width:${pCap}%;background:${color}"></div>
-      </div>
+      <div class="prog-track"><div class="prog-fill" style="width:${pCap}%;background:${color}"></div></div>
       <div style="display:flex;justify-content:space-between;margin-top:6px">
         <div style="font-size:10px;color:var(--text3);font-weight:600">${Math.round(p)}% used</div>
         ${p>100?`<div style="font-size:10px;color:var(--red);font-weight:700">⚠ Over budget</div>`:p>70?`<div style="font-size:10px;color:var(--yellow);font-weight:700">⚡ Nearing limit</div>`:''}
       </div>
     </div>`;
-  }).join('') + (exc.length ? `<div style="margin-top:8px;padding:10px 14px;border-radius:12px;background:var(--bg4);border:1px solid var(--border);font-size:12px;color:var(--text2)">🚫 ${exc.length} categor${exc.length>1?'ies':'y'} excluded from budget · <button onclick="switchTab('tab-settings')" style="background:none;border:none;color:var(--accent2);font-size:12px;font-family:inherit;cursor:pointer;font-weight:700">Manage</button></div>` : '');
+  }).join('');
+
+  const nobudgetHTML = nobudget.length ? `
+    <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin:14px 0 8px;padding:0 2px">Unbudgeted Spend</div>
+    ${nobudget.map(cat => {
+      const s = spent[cat];
+      const color = catColor(cat);
+      return `<div class="budget-cat-card" onclick="showCatTxns('${cat}',true)" style="border-left:3px solid ${color}40">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:38px;height:38px;border-radius:12px;background:${color}18;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${catIcon(cat)}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${cat}</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:2px">No budget set · tap to view</div>
+          </div>
+          <div style="font-size:14px;font-weight:800;color:${color};flex-shrink:0">${fmt(s)}</div>
+        </div>
+      </div>`;
+    }).join('')}` : '';
+
+  const excFooter = exc.length ? `<div style="margin-top:8px;padding:10px 14px;border-radius:12px;background:var(--bg4);border:1px solid var(--border);font-size:12px;color:var(--text2)">🚫 ${exc.length} categor${exc.length>1?'ies':'y'} excluded · <button onclick="switchTab('tab-settings')" style="background:none;border:none;color:var(--accent2);font-size:12px;font-family:inherit;cursor:pointer;font-weight:700">Manage</button></div>` : '';
+
+  el.innerHTML = budgetedHTML + nobudgetHTML + excFooter;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1650,10 +1712,11 @@ function openCatContext(type, key, year) {
   const yr = year || selYear;
 
   if (type === 'cat-month') {
-    // key = category, show current month only
-    txns = txnsForYM(currentYM()).filter(t => t.category === key);
+    // key = category; year = specific YYYY-MM (from All Months) or default currentYM
+    const ctxYM = (year && year.length === 7) ? year : currentYM();
+    txns = txnsForYM(ctxYM).filter(t => t.category === key);
     title = `${catIcon(key)} ${key}`;
-    sub   = `${ymLabel(currentYM())} · ${txns.length} transactions`;
+    sub   = `${ymLabel(ctxYM)} · ${txns.length} transactions`;
   } else if (type === 'cat-year') {
     // key = category, year filtered
     txns = (yr === 'ALL' ? state.transactions : txnsForYear(yr)).filter(t => t.category === key);
@@ -1701,16 +1764,18 @@ function renderRecentTxns() {
 }
 
 function txnRowHTML(t) {
-  const color = catColor(t.category);
-  const icon  = catIcon(t.category);
-  return `<div class="txn-row" onclick="editTxn(${t.id})">
+  const color   = catColor(t.category);
+  const icon    = catIcon(t.category);
+  const excl    = isTxnExcluded(t.id);
+  const exclBadge = excl ? `<span style="font-size:9px;font-weight:700;color:#ff8a80;background:rgba(255,107,107,.12);border-radius:6px;padding:1px 5px;margin-left:4px">excl.</span>` : '';
+  return `<div class="txn-row" onclick="editTxn(${t.id})" style="${excl?'opacity:.45':''}">
     <div class="txn-icon" style="background:${color}20">${icon}</div>
     <div style="flex:1;min-width:0">
-      <div class="txn-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px">${t.merchant}</div>
+      <div class="txn-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px;display:flex;align-items:center">${t.merchant}${exclBadge}</div>
       <div class="txn-cat">${t.category}</div>
     </div>
     <div style="text-align:right;flex-shrink:0">
-      <div class="txn-amt" style="color:${color}">${fmt(t.amount)}</div>
+      <div class="txn-amt" style="color:${color};${excl?'text-decoration:line-through':''}">${fmt(t.amount)}</div>
       <div class="txn-date">${fmtDate(t.date)}</div>
     </div>
   </div>`;
@@ -1925,8 +1990,31 @@ function editTxn(id) {
   document.getElementById('edit-category').value= t.category;
   document.getElementById('edit-date').value    = t.date;
   document.getElementById('edit-notes').value   = t.notes||'';
+  // Set exclude button state
+  const excBtn = document.getElementById('excl-btn');
+  const isExcl = isTxnExcluded(id);
+  if (excBtn) {
+    excBtn.textContent = isExcl ? 'Re-include' : 'Exclude';
+    excBtn.style.background = isExcl ? 'rgba(255,107,107,.2)' : 'rgba(124,111,247,.15)';
+    excBtn.style.color = isExcl ? '#ff6b6b' : 'var(--accent2)';
+    excBtn.style.border = isExcl ? '1px solid rgba(255,107,107,.3)' : '1px solid rgba(124,111,247,.2)';
+  }
   closeModal('modal-cat');
   openModal('modal-edit');
+}
+
+function toggleEditTxnExclude() {
+  const id = parseInt(document.getElementById('edit-id').value);
+  toggleTxnExclude(id);
+  // Refresh button state
+  const excBtn = document.getElementById('excl-btn');
+  const isExcl = isTxnExcluded(id);
+  if (excBtn) {
+    excBtn.textContent = isExcl ? 'Re-include' : 'Exclude';
+    excBtn.style.background = isExcl ? 'rgba(255,107,107,.2)' : 'rgba(124,111,247,.15)';
+    excBtn.style.color = isExcl ? '#ff6b6b' : 'var(--accent2)';
+    excBtn.style.border = isExcl ? '1px solid rgba(255,107,107,.3)' : '1px solid rgba(124,111,247,.2)';
+  }
 }
 function saveEdit() {
   const id = parseInt(document.getElementById('edit-id').value);
@@ -2292,13 +2380,30 @@ function renderHistory() {
       const color  = sExcl>avgSpend?'var(--red)':sExcl<avgSpend*0.8?'var(--green)':'var(--text)';
       const savCol = mSaved !== null ? (mSaved >= 0 ? 'var(--green)' : 'var(--red)') : 'var(--text3)';
       const hasOverride = mLog.income != null || mLog.saved != null;
+      // Category breakdown for this month
+      const mCatData = sumByCat(txnsForYMExcl(ym));
+      const mTopCats = Object.entries(mCatData).sort((a,b)=>b[1]-a[1]).slice(0,8);
+      const mCatHTML = mTopCats.map(([cat,amt]) => {
+        const catPct = sExcl > 0 ? Math.round(amt/sExcl*100) : 0;
+        const cColor = catColor(cat);
+        return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="openCatContext('cat-month','${cat}','${ym}')">
+          <span style="font-size:16px;flex-shrink:0">${catIcon(cat)}</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${cat}</div>
+            <div style="height:3px;background:var(--bg4);border-radius:2px;margin-top:3px"><div style="height:3px;width:${catPct}%;background:${cColor};border-radius:2px"></div></div>
+          </div>
+          <div style="font-size:12px;font-weight:800;color:${cColor};flex-shrink:0">${fmt(amt)}</div>
+          <div style="font-size:10px;color:var(--text3);flex-shrink:0;width:28px;text-align:right">${catPct}%</div>
+        </div>`;
+      }).join('') + (Object.keys(mCatData).length>8?`<div style="font-size:11px;color:var(--text3);padding:6px 0;text-align:center">+${Object.keys(mCatData).length-8} more categories</div>`:'');
+
       return `<div class="card" style="padding:14px 16px;margin-bottom:8px">
         <div style="display:flex;align-items:center;gap:12px">
           <div style="flex:1;cursor:pointer" onclick="openCatContext('month','${ym}','${ym}')">
             <div style="font-size:14px;font-weight:700">${ymLabel(ym)}${hasOverride?' <span style="font-size:10px;color:var(--accent2)">· edited</span>':''}</div>
             <div style="font-size:11px;color:var(--text2);margin-top:2px">${txnsForYM(ym).length} txns · tap to view</div>
           </div>
-          <button onclick="openIncomeEdit('${ym}')" style="background:rgba(124,111,247,.15);border:none;color:var(--accent2);font-size:11px;font-weight:700;border-radius:8px;padding:5px 10px;font-family:inherit;cursor:pointer;flex-shrink:0">Edit Income</button>
+          <button onclick="openIncomeEdit('${ym}')" style="background:rgba(124,111,247,.15);border:none;color:var(--accent2);font-size:11px;font-weight:700;border-radius:8px;padding:5px 10px;font-family:inherit;cursor:pointer;flex-shrink:0">Edit</button>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px">
           <div style="background:var(--bg4);border-radius:10px;padding:8px 10px;text-align:center">
@@ -2314,6 +2419,10 @@ function renderHistory() {
             <div style="font-size:13px;font-weight:800;color:${savCol}">${mSaved!==null?(mSaved>=0?'':'-')+fmt(Math.abs(mSaved)):'—'}</div>
           </div>
         </div>
+        ${mTopCats.length>0?`
+        <button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.textContent=this.nextElementSibling.style.display==='none'?'▶ Categories':'▼ Categories';"
+          style="margin-top:10px;background:none;border:none;color:var(--text3);font-size:11px;font-weight:700;font-family:inherit;cursor:pointer;padding:0;letter-spacing:.3px">▶ Categories</button>
+        <div style="display:none;margin-top:6px">${mCatHTML}</div>`:''}
       </div>`;
     }).join('')}`;
 }
@@ -2867,7 +2976,7 @@ function saveIncomeLog(key, incInputId, savInputId) {
 // IMPORT / EXPORT
 // ═══════════════════════════════════════════════════════════════
 function exportData() {
-  const blob=new Blob([JSON.stringify({transactions:state.transactions,budgets:state.budgets,rules:state.rules,income:state.income,incomeLog:state.incomeLog||{},excludedCats:state.excludedCats||[],customCategories:state.customCategories||[],categoryRenames:state.categoryRenames||{}},null,2)],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({transactions:state.transactions,budgets:state.budgets,rules:state.rules,income:state.income,incomeLog:state.incomeLog||{},excludedCats:state.excludedCats||[],customCategories:state.customCategories||[],categoryRenames:state.categoryRenames||{},excludedTxnIds:state.excludedTxnIds||[]},null,2)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
   const d=new Date(); const localDate=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   a.download=`spendwise_backup_${localDate}.json`; a.click();
@@ -2885,6 +2994,7 @@ function importData(e) {
       if (d.excludedCats) state.excludedCats=d.excludedCats;
       if (d.customCategories) state.customCategories=d.customCategories;
       if (d.categoryRenames) state.categoryRenames=d.categoryRenames;
+      if (d.excludedTxnIds) state.excludedTxnIds=d.excludedTxnIds;
       // Rebuild custom category entries into CATEGORIES + CAT_ICONS
       (state.customCategories||[]).forEach(entry => {
         const name = typeof entry === 'string' ? entry : entry.name;
