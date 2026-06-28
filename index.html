@@ -444,6 +444,8 @@ select{
 .insight-body{flex:1;min-width:0}
 .insight-text{font-size:13px;font-weight:500;line-height:1.55;color:var(--text)}
 .insight-meta{font-size:10.5px;color:var(--text3);font-weight:600;margin-top:4px;text-transform:uppercase;letter-spacing:.3px}
+.light .insight-text{color:#0d0d1a;font-weight:600}
+.light .insight-meta{color:#44445a;font-weight:700}
 
 /* insight type colors */
 .insight.type-savings .insight-badge{background:rgba(0,212,160,.14)}
@@ -853,7 +855,7 @@ select{
         🟢 <b style="color:var(--green)">Toggle On</b> = included in budget &nbsp;·&nbsp; ⚫ <b style="color:var(--text3)">Toggle Off</b> = excluded from budget calculations (e.g. Rent, Transfers)
       </div>
       <div class="card-elevated" style="padding:16px;margin-bottom:0">
-        <div id="budget-settings-list"></div>
+        <div id="budget-settings-list" style="max-height:340px;overflow-y:auto;scrollbar-width:thin"></div>
       </div>
     </div>
 
@@ -1545,12 +1547,12 @@ function renderHero() {
 
     const insightEl = document.getElementById('home-insight-text');
     const isLight = !state.darkMode;
-    const clrLabel   = isLight ? '#888899'  : '#9090b8';
-    const clrBody    = isLight ? '#333344'  : '#ccccdd';
+    const clrLabel   = isLight ? '#44445a'  : '#9090b8';
+    const clrBody    = isLight ? '#0d0d1a'  : '#ccccdd';
     const clrStrong  = isLight ? '#0d0d1a'  : '#ffffff';
-    const clrDivider = isLight ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.15)';
-    const clrWeekAmt = isLight ? '#4433cc' : '#c4b5fd';
-    const clrYdAmt   = ydSpend>0 ? (isLight ? '#4433cc' : '#c4b5fd') : (isLight ? '#aaaaaa' : '#666688');
+    const clrDivider = isLight ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.15)';
+    const clrWeekAmt = isLight ? '#3322bb' : '#c4b5fd';
+    const clrYdAmt   = ydSpend>0 ? (isLight ? '#3322bb' : '#c4b5fd') : (isLight ? '#888899' : '#666688');
 
     // Spend per day this month (excl Rent + Money Transfers)
     const DAILY_EXCL2 = ['Rent','Money Transfer','Transfers & Gifts'];
@@ -1675,8 +1677,8 @@ function renderDayContext(cm) {
   const pill = (label, val, accent) =>
     `<div style="flex:1;background:${PILL_BG};border:1px solid ${PILL_BRD};border-radius:14px;padding:11px 12px;box-shadow:${PILL_SH};position:relative;overflow:hidden;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;flex-direction:column;justify-content:space-between;min-height:64px">
       <div style="position:absolute;top:-18px;right:-18px;width:56px;height:56px;border-radius:50%;background:${PILL_ORB};pointer-events:none"></div>
-      <div style="font-size:8px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px;position:relative;line-height:1.3;word-break:break-word">${label}</div>
-      <div style="font-size:15px;font-weight:800;color:${accent};position:relative;margin-top:auto">${val}</div>
+      <div style="font-size:8px;font-weight:800;color:#ffffff;text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px;position:relative;line-height:1.3;word-break:break-word">${label}</div>
+      <div style="font-size:15px;font-weight:800;color:#ffffff;position:relative;margin-top:auto">${val}</div>
     </div>`;
 
   el.innerHTML =
@@ -1690,6 +1692,18 @@ function renderBudgetList() {
   const cm  = currentYM();
   const spent = sumByCat(txnsForYM(cm));
   const exc = state.excludedCats || [];
+
+  // Compute per-category yearly avg (current year, all months with data, excl this month)
+  const curYear = cm.substring(0,4);
+  const yearYMs = allYMs().filter(ym => ym.startsWith(curYear) && ym !== cm);
+  const catYearlyAvg = {};
+  if (yearYMs.length > 0) {
+    yearYMs.forEach(ym => {
+      const byC = sumByCat(txnsForYM(ym));
+      Object.entries(byC).forEach(([c,v]) => { catYearlyAvg[c] = (catYearlyAvg[c]||0) + v; });
+    });
+    Object.keys(catYearlyAvg).forEach(c => { catYearlyAvg[c] = catYearlyAvg[c] / yearYMs.length; });
+  }
 
   // Categories with a set budget (not excluded)
   const budgeted = Object.keys(state.budgets).filter(c => state.budgets[c]>0 && !exc.includes(c));
@@ -1716,6 +1730,16 @@ function renderBudgetList() {
     const color = p>100 ? 'var(--red)' : p>70 ? 'var(--yellow)' : 'var(--green)';
     const left  = limit - s;
     const icon  = catIcon(cat);
+    const avg   = catYearlyAvg[cat];
+    const avgLabel = avg > 0
+      ? (() => {
+          const diff = s - avg;
+          const pct  = Math.abs(diff / avg * 100).toFixed(0);
+          const clr  = diff > avg * 0.1 ? 'var(--red)' : diff < -avg * 0.1 ? 'var(--green)' : 'var(--text3)';
+          const arrow = diff > avg * 0.1 ? '↑' : diff < -avg * 0.1 ? '↓' : '~';
+          return `<span style="font-size:10px;font-weight:600;color:var(--text3)">Avg: ${fmt(avg)}</span><span style="font-size:10px;font-weight:700;color:${clr};margin-left:4px">${arrow}${pct}%</span>`;
+        })()
+      : '';
     return `
     <div class="budget-cat-card" onclick="showCatTxns('${cat}',true)">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
@@ -1729,6 +1753,7 @@ function renderBudgetList() {
             <div style="font-size:11px;color:var(--text2)">of ${fmt(limit)}</div>
             <div style="font-size:11px;font-weight:600;color:${left<0?'var(--red)':'var(--text2)'}">${left<0?'over '+fmt(-left):fmt(left)+' left'}</div>
           </div>
+          ${avgLabel ? `<div style="display:flex;align-items:center;gap:2px;margin-top:3px">${avgLabel}</div>` : ''}
         </div>
       </div>
       <div class="prog-track"><div class="prog-fill" style="width:${pCap}%;background:${color}"></div></div>
@@ -1744,12 +1769,23 @@ function renderBudgetList() {
     ${nobudget.map(cat => {
       const s = spent[cat];
       const color = catColor(cat);
+      const avg   = catYearlyAvg[cat];
+      const avgLine = avg > 0
+        ? (() => {
+            const diff = s - avg;
+            const pct  = Math.abs(diff / avg * 100).toFixed(0);
+            const clr  = diff > avg * 0.1 ? 'var(--red)' : diff < -avg * 0.1 ? 'var(--green)' : 'var(--text3)';
+            const arrow = diff > avg * 0.1 ? '↑' : diff < -avg * 0.1 ? '↓' : '~';
+            return `<div style="font-size:10px;color:var(--text3);margin-top:3px">Avg: ${fmt(avg)} <span style="color:${clr};font-weight:700">${arrow}${pct}%</span></div>`;
+          })()
+        : '';
       return `<div class="budget-cat-card" onclick="showCatTxns('${cat}',true)" style="border-left:3px solid ${color}40">
         <div style="display:flex;align-items:center;gap:10px">
           <div style="width:38px;height:38px;border-radius:12px;background:${color}18;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${catIcon(cat)}</div>
           <div style="flex:1;min-width:0">
             <div style="font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${cat}</div>
             <div style="font-size:11px;color:var(--text2);margin-top:2px">No budget set · tap to view</div>
+            ${avgLine}
           </div>
           <div style="font-size:14px;font-weight:800;color:${color};flex-shrink:0">${fmt(s)}</div>
         </div>
