@@ -691,13 +691,30 @@ select{
   </div>
 
   <div class="page page-notop" style="padding-top:20px">
-    <!-- By-this-day context row -->
-    <div id="home-day-context" style="display:flex;gap:8px;margin-bottom:14px"></div>
-
-    <!-- Trend insight -->
-    <div id="home-insight" class="insight fade-up" style="display:none;margin-bottom:16px">
-      <div class="insight-icon">📊</div>
-      <div class="insight-text" id="home-insight-text"></div>
+    <!-- Unified spend overview card -->
+    <div id="spend-overview-card" class="card fade-up" style="padding:0;margin-bottom:16px;overflow:hidden;display:none">
+      <!-- Colorful gradient header -->
+      <div id="sov-header" style="background:linear-gradient(150deg,#1a0e3a 0%,#0d1a3a 50%,#0a1f2e 100%);padding:14px 16px 12px;position:relative;overflow:hidden">
+        <div style="position:absolute;top:-60px;right:-40px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(124,111,247,.35) 0%,transparent 70%);pointer-events:none"></div>
+        <div style="position:absolute;bottom:-50px;left:-20px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(0,212,160,.2) 0%,transparent 70%);pointer-events:none"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;position:relative">
+          <div>
+            <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.7px;margin-bottom:2px">Spending Overview</div>
+            <div id="sov-title" style="font-size:15px;font-weight:800;color:#fff"></div>
+          </div>
+          <div id="sov-legend" style="display:flex;flex-direction:column;gap:4px;align-items:flex-end"></div>
+        </div>
+        <!-- Savings row inside header -->
+        <div id="sov-savings-row" style="display:flex;gap:8px;margin-top:10px;position:relative"></div>
+      </div>
+      <!-- Chart -->
+      <div style="padding:10px 16px 0;background:var(--bg2)">
+        <canvas id="mom-chart" height="110" style="width:100%;display:block"></canvas>
+      </div>
+      <!-- Key stats strip -->
+      <div id="sov-stats" style="display:flex;gap:0;border-top:1px solid var(--border);background:var(--bg2)"></div>
+      <!-- Insight rows -->
+      <div id="sov-insights" style="padding:10px 16px 14px;display:flex;flex-direction:column;gap:7px;border-top:1px solid var(--border);background:var(--bg2)"></div>
     </div>
 
     <!-- Budget categories -->
@@ -856,6 +873,70 @@ select{
       </div>
       <div class="card-elevated" style="padding:16px;margin-bottom:0">
         <div id="budget-settings-list" style="max-height:340px;overflow-y:auto;scrollbar-width:thin"></div>
+      </div>
+    </div>
+
+    <!-- Auto Budget -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;margin-top:10px">
+      <button onclick="toggleSection('auto-budget-body','chevron-autobudget')" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:0">
+        <div style="font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.5px;text-transform:uppercase">✨ Auto Budget</div>
+        <svg id="chevron-autobudget" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .3s;flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+    </div>
+    <div id="auto-budget-body" class="collapsible-section collapsed">
+      <div class="card-elevated" style="padding:16px;margin-bottom:0">
+        <div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:12px">
+          Suggests budgets from your historical spending. Select how many months to look back, review, then apply individually or all at once.
+        </div>
+
+        <!-- Row 1: look back + suggest -->
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+          <div style="font-size:12px;font-weight:600;color:var(--text);flex-shrink:0">Look back</div>
+          <select id="auto-budget-months" style="flex:1;border-radius:10px;padding:8px 12px;font-size:12px">
+            <option value="3">3 months</option>
+            <option value="6" selected>6 months</option>
+            <option value="12">12 months</option>
+          </select>
+          <button onclick="generateAutoBudget()" style="flex-shrink:0;background:var(--accent);border:none;color:#fff;font-size:12px;font-weight:700;border-radius:10px;padding:9px 16px;font-family:inherit;cursor:pointer">Suggest</button>
+        </div>
+
+        <!-- Row 2: total budget + auto-split -->
+        <div style="display:flex;gap:8px;align-items:center;padding:10px 12px;background:var(--bg4);border:1px solid var(--border);border-radius:12px;margin-bottom:12px">
+          <div style="font-size:12px;font-weight:600;color:var(--text);flex-shrink:0">Total budget</div>
+          <div style="position:relative;flex:1">
+            <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:700;color:var(--text3);pointer-events:none">$</span>
+            <input type="number" id="ab-total-budget" placeholder="e.g. 5000" step="100"
+              style="width:100%;padding:8px 8px 8px 22px;font-size:13px;font-weight:700;border-radius:10px;box-sizing:border-box"
+              oninput="onTotalBudgetInput()">
+          </div>
+          <button onclick="splitByTotal()" style="flex-shrink:0;background:linear-gradient(135deg,#7c6ff7,#00d4a0);border:none;color:#fff;font-size:12px;font-weight:700;border-radius:10px;padding:9px 14px;font-family:inherit;cursor:pointer">⚡ Split</button>
+        </div>
+
+        <div id="auto-budget-list" style="display:none">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.4px" id="auto-budget-subtitle"></div>
+            <button onclick="applyAllAutoBudgets()" style="background:var(--green);border:none;color:#fff;font-size:11px;font-weight:700;border-radius:8px;padding:6px 12px;font-family:inherit;cursor:pointer">Apply All</button>
+          </div>
+
+          <!-- Live running total bar -->
+          <div id="ab-total-bar" style="display:none;margin-bottom:10px;padding:10px 12px;background:var(--bg4);border:1px solid var(--border);border-radius:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <span style="font-size:11px;font-weight:700;color:var(--text2)">Allocated</span>
+              <div style="display:flex;align-items:center;gap:6px">
+                <span style="font-size:12px;font-weight:800;color:var(--text)" id="ab-alloc-amt">$0</span>
+                <span style="font-size:11px;color:var(--text3)">of</span>
+                <span style="font-size:12px;font-weight:800;color:var(--accent2)" id="ab-target-amt">$0</span>
+                <span style="font-size:11px;font-weight:700;padding:1px 7px;border-radius:6px" id="ab-remain-badge"></span>
+              </div>
+            </div>
+            <div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden">
+              <div id="ab-alloc-bar" style="height:100%;border-radius:3px;transition:width .2s,background .2s"></div>
+            </div>
+          </div>
+
+          <div id="auto-budget-rows" style="display:flex;flex-direction:column;gap:6px"></div>
+          <div style="margin-top:10px;font-size:10px;color:var(--text3);line-height:1.5">💡 Suggestions are rounded averages of your actual spend. You can edit each value before applying.</div>
+        </div>
       </div>
     </div>
 
@@ -1491,200 +1572,235 @@ function renderHero() {
     if (ring) { ring.style.strokeDashoffset = offset; ring.style.stroke = left<0?'#ff6b6b':'url(#heroGrad)'; }
   }, 100);
 
-  // ── By-this-day context ──
-  renderDayContext(cm);
-
-  // Trend banner
-  const pm = prevYM(cm);
-  const pmSpent = spentExcluding(txnsForYM(pm));
-  const banner = document.getElementById('home-insight');
-  if (pmSpent > 0 && banner) {
-    const diff = ((spent-pmSpent)/pmSpent*100).toFixed(0);
-    const sign = diff>0?'+':'';
-    // 12-month day-of-week peak (legit expenses, per-day avg)
-    const DOW2 = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-    const SKIP2 = ['Rent','Money Transfer','Transfers & Gifts','Utilities & Bills','Insurance','Car Payment','Taxes','Government/DMV','Financial & Fees','Phone','iPhone EMI'];
-    const exc2  = state.excludedCats||[];
-    const iDayTots = {};
-    Array.from({length:12},(_,i)=>{
-      const d=new Date(NOW.getFullYear(),NOW.getMonth()-i,1);
-      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-    }).forEach(ym2=>{
-      txnsForYM(ym2).filter(t=>!exc2.includes(t.category)&&!SKIP2.includes(t.category))
-        .forEach(t=>{ if(t.date) iDayTots[t.date]=(iDayTots[t.date]||0)+t.amount; });
-    });
-    const iDowTot=[0,0,0,0,0,0,0], iDowCnt=[0,0,0,0,0,0,0];
-    Object.entries(iDayTots).forEach(([date,tot])=>{
-      const dow=new Date(date+'T00:00:00').getDay();
-      iDowTot[dow]+=tot; iDowCnt[dow]++;
-    });
-    const dAvgs=iDowTot.map((tot,i)=>iDowCnt[i]>0?tot/iDowCnt[i]:0);
-    const peak=dAvgs.indexOf(Math.max(...dAvgs));
-    const diffLbl = Math.abs(Number(diff))>0 ? `${sign}${diff}% vs ${ymLabel(pm)}` : `Same as ${ymLabel(pm)}`;
-
-    // Last week's spend: Mon–Sun of the previous calendar week, excluding Rent
-    const RENT_CATS = ['Rent'];
-    const todayDow = NOW.getDay(); // 0=Sun,1=Mon…6=Sat
-    const daysToLastMon = todayDow === 0 ? 6 : todayDow - 1; // days back to this week's Monday
-    const thisWeekMon = new Date(NOW); thisWeekMon.setDate(NOW.getDate() - daysToLastMon);
-    const lastWeekMon = new Date(thisWeekMon); lastWeekMon.setDate(thisWeekMon.getDate() - 7);
-    const lastWeekSun = new Date(thisWeekMon); lastWeekSun.setDate(thisWeekMon.getDate() - 1);
-    const lwMonStr = `${lastWeekMon.getFullYear()}-${String(lastWeekMon.getMonth()+1).padStart(2,'0')}-${String(lastWeekMon.getDate()).padStart(2,'0')}`;
-    const lwSunStr = `${lastWeekSun.getFullYear()}-${String(lastWeekSun.getMonth()+1).padStart(2,'0')}-${String(lastWeekSun.getDate()).padStart(2,'0')}`;
-    const lastWeekSpend = state.transactions.filter(t => {
-      if (!t.date) return false;
-      if (t.date < lwMonStr || t.date > lwSunStr) return false;
-      if (RENT_CATS.includes(t.category)) return false;
-      return true;
-    }).reduce((s,t)=>s+t.amount,0);
-    const lwLabel = `${lastWeekMon.toLocaleDateString('en-US',{month:'short',day:'numeric'})}–${lastWeekSun.toLocaleDateString('en-US',{month:'short',day:'numeric'})}`;
-
-    // Yesterday's spend
-    const yd = new Date(NOW); yd.setDate(yd.getDate()-1);
-    const ydStr = `${yd.getFullYear()}-${String(yd.getMonth()+1).padStart(2,'0')}-${String(yd.getDate()).padStart(2,'0')}`;
-    const ydSpend = state.transactions.filter(t=>t.date===ydStr).reduce((s,t)=>s+t.amount,0);
-    const ydLabel = yd.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-
-    const insightEl = document.getElementById('home-insight-text');
-    const isLight = !state.darkMode;
-    const clrLabel   = isLight ? '#44445a'  : '#9090b8';
-    const clrBody    = isLight ? '#0d0d1a'  : '#ccccdd';
-    const clrStrong  = isLight ? '#0d0d1a'  : '#ffffff';
-    const clrDivider = isLight ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.15)';
-    const clrWeekAmt = isLight ? '#3322bb' : '#c4b5fd';
-    const clrYdAmt   = ydSpend>0 ? (isLight ? '#3322bb' : '#c4b5fd') : (isLight ? '#888899' : '#666688');
-
-    // Spend per day this month (excl Rent + Money Transfers)
-    const DAILY_EXCL2 = ['Rent','Money Transfer','Transfers & Gifts'];
-    const cmDailyAmt = txnsForYM(cm).filter(t=>!DAILY_EXCL2.includes(t.category)).reduce((s,t)=>s+t.amount,0);
-    const todayNum = NOW.getDate();
-    const spendPerDayVal = cmDailyAmt / Math.max(todayNum, 1);
-    const spendPerDayColor = isLight ? '#4433cc' : '#c4b5fd';
-
-    insightEl.innerHTML = `
-      <div style="display:flex;align-items:flex-start;gap:10px">
-        <span style="font-size:26px;line-height:1;flex-shrink:0">🎯</span>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:10px;font-weight:700;color:${clrLabel};text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px">Insights · ${ymLabel(cm)}</div>
-          <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:7px;border-bottom:1px solid ${clrDivider}">
-            <span style="font-size:10px;font-weight:600;color:${clrLabel};text-transform:uppercase;letter-spacing:.5px">$/Day (excl. Rent)</span>
-            <span style="font-size:13px;font-weight:800;color:${spendPerDayColor}">${fmt(spendPerDayVal)}/day</span>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:7px">
-            <span style="font-size:10px;font-weight:600;color:${clrLabel};text-transform:uppercase;letter-spacing:.5px">Last Week <span style="font-weight:400;text-transform:none;opacity:.7">(${lwLabel}, excl. Rent)</span></span>
-            <span style="font-size:13px;font-weight:800;color:${clrWeekAmt}">${lastWeekSpend>0?fmt(lastWeekSpend):'—'}</span>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:5px;padding-top:5px;border-top:1px solid ${clrDivider}">
-            <span style="font-size:10px;font-weight:600;color:${clrLabel};text-transform:uppercase;letter-spacing:.5px">Yesterday <span style="font-weight:400;text-transform:none;opacity:.7">(${ydLabel})</span></span>
-            <span style="font-size:13px;font-weight:800;color:${clrYdAmt}">${ydSpend>0?fmt(ydSpend):'—'}</span>
-          </div>
-        </div>
-      </div>`;
-    banner.style.display = 'block';
-  }
+  // ── Spend overview (chart + stats + insights) ──
+  renderSpendOverview(cm);
 }
 
 // ═══════════════════════════════════════════════════════════════
-// BUDGET LIST (HOME)
+// UNIFIED SPEND OVERVIEW (chart + stats + insights)
 // ═══════════════════════════════════════════════════════════════
-function renderDayContext(cm) {
-  const el = document.getElementById('home-day-context'); if (!el) return;
-  const today     = NOW.getDate();
-  const pm        = prevYM(cm);
-  const pmTxns    = txnsForYM(pm);
-  const exc       = state.excludedCats || [];
+function renderSpendOverview(cm) {
+  const card   = document.getElementById('spend-overview-card');
+  const canvas = document.getElementById('mom-chart');
+  if (!card || !canvas) return;
 
-  // Spend up to same day last month
-  const pmByDay   = pmTxns.filter(t => {
-    const d = new Date(t.date+'T00:00:00');
-    return d.getDate() <= today && !exc.includes(t.category);
-  }).reduce((s,t)=>s+t.amount,0);
+  const pm  = prevYM(cm);
+  const exc = state.excludedCats || [];
+  const SKIP = ['Rent','Money Transfer','Transfers & Gifts'];
+  const today = NOW.getDate();
+  const isLight = !state.darkMode;
 
-  // Historical avg spend by this day (last 3 months)
-  const months3   = [1,2,3].map(i => {
-    const d = new Date(NOW.getFullYear(), NOW.getMonth()-i, 1);
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  // ── Data ──
+  const daysInPM = new Date(parseInt(pm.split('-')[0]), parseInt(pm.split('-')[1]), 0).getDate();
+  const daysInCM = new Date(parseInt(cm.split('-')[0]), parseInt(cm.split('-')[1]), 0).getDate();
+
+  const cmByDay = new Array(daysInCM).fill(0);
+  txnsForYM(cm).filter(t => !exc.includes(t.category)).forEach(t => {
+    if (!t.date) return;
+    const d = new Date(t.date+'T00:00:00').getDate() - 1;
+    if (d >= 0 && d < daysInCM) cmByDay[d] += t.amount;
   });
-  const avgByDay  = months3.reduce((sum, ym) => {
-    return sum + txnsForYM(ym).filter(t => {
-      const d = new Date(t.date+'T00:00:00');
-      return d.getDate() <= today && !exc.includes(t.category);
-    }).reduce((s,t)=>s+t.amount,0);
-  }, 0) / 3;
+  const cmCum = []; let runCM = 0;
+  for (let i = 0; i < today; i++) { runCM += cmByDay[i]; cmCum.push(runCM); }
 
-  const curSpent  = spentExcluding(txnsForYM(cm));
-
-  // Day-of-week spending pattern (last 12 months, legit expenses only)
-  const DOW = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const SKIP_CATS = ['Rent','Money Transfer','Transfers & Gifts','Utilities & Bills','Insurance','Car Payment','Taxes','Government/DMV','Financial & Fees','Phone','iPhone EMI'];
-  const dowDayTotals = {}; // date -> total
-  const dowTotByDow  = [0,0,0,0,0,0,0]; // accumulated per weekday
-  const dowDayCount  = [0,0,0,0,0,0,0]; // distinct days per weekday
-  const months12 = Array.from({length:12},(_,i)=>{
-    const d=new Date(NOW.getFullYear(),NOW.getMonth()-i,1);
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  const pmByDay = new Array(daysInPM).fill(0);
+  txnsForYM(pm).filter(t => !exc.includes(t.category)).forEach(t => {
+    if (!t.date) return;
+    const d = new Date(t.date+'T00:00:00').getDate() - 1;
+    if (d >= 0 && d < daysInPM) pmByDay[d] += t.amount;
   });
-  months12.forEach(ym=>{
-    txnsForYM(ym)
-      .filter(t=>!exc.includes(t.category) && !SKIP_CATS.includes(t.category))
-      .forEach(t=>{
-        if(!t.date) return;
-        dowDayTotals[t.date] = (dowDayTotals[t.date]||0) + t.amount;
-      });
+  const pmCum = []; let runPM = 0;
+  for (let i = 0; i < daysInPM; i++) { runPM += pmByDay[i]; pmCum.push(runPM); }
+
+  const pmTotal = pmCum[pmCum.length - 1] || 0;
+  const cmTotal = cmCum[cmCum.length - 1] || 0;
+  if (pmTotal === 0 && cmTotal === 0) { card.style.display = 'none'; return; }
+
+  card.style.display = 'block';
+
+  // ── Header ──
+  const titleEl = document.getElementById('sov-title');
+  if (titleEl) titleEl.textContent = `${ymLabel(cm)} vs ${ymLabel(pm)}`;
+
+  // ── Canvas ──
+  const dpr = window.devicePixelRatio || 1;
+  const W   = canvas.parentElement.clientWidth;
+  const H   = 110;
+  canvas.width  = W * dpr; canvas.height = H * dpr;
+  canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const gridClr = isLight ? 'rgba(0,0,0,.06)'  : 'rgba(255,255,255,.06)';
+  const labelClr = isLight ? 'rgba(0,0,0,.35)' : 'rgba(255,255,255,.35)';
+  const cmClr   = '#7c6ff7';
+  const pmClr   = isLight ? 'rgba(100,116,139,.5)' : 'rgba(148,163,184,.55)';
+  const cmFill  = isLight ? 'rgba(124,111,247,.12)' : 'rgba(124,111,247,.18)';
+  const pmFill  = isLight ? 'rgba(100,116,139,.06)' : 'rgba(148,163,184,.08)';
+
+  const PAD = { top: 8, right: 10, bottom: 22, left: 46 };
+  const plotW = W - PAD.left - PAD.right;
+  const plotH = H - PAD.top - PAD.bottom;
+  const niceMax = Math.ceil(Math.max(...pmCum, ...cmCum, 1) / 500) * 500;
+
+  const xScale = (i, total) => PAD.left + (i / (total - 1 || 1)) * plotW;
+  const yScale = v => PAD.top + plotH - (v / niceMax) * plotH;
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.strokeStyle = gridClr; ctx.lineWidth = 1;
+  [0.25, 0.5, 0.75, 1].forEach(f => {
+    const y = PAD.top + plotH * (1 - f);
+    ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(W - PAD.right, y); ctx.stroke();
+    ctx.fillStyle = labelClr; ctx.font = '600 9px system-ui'; ctx.textAlign = 'right';
+    ctx.fillText(fmtK(niceMax * f), PAD.left - 4, y + 3);
   });
-  // Now group daily totals by weekday
-  Object.entries(dowDayTotals).forEach(([date, tot])=>{
-    const dow = new Date(date+'T00:00:00').getDay();
-    dowTotByDow[dow] += tot;
-    dowDayCount[dow]++;
+
+  const drawLine = (data, totalDays, lClr, fClr, lW, dash) => {
+    if (data.length < 2) return;
+    if (dash) ctx.setLineDash(dash); else ctx.setLineDash([]);
+    // fill
+    ctx.beginPath();
+    data.forEach((v, i) => { const x = xScale(i, totalDays), y = yScale(v); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+    ctx.lineTo(xScale(data.length - 1, totalDays), yScale(0));
+    ctx.lineTo(xScale(0, totalDays), yScale(0));
+    ctx.closePath(); ctx.fillStyle = fClr; ctx.fill();
+    // stroke
+    ctx.beginPath();
+    data.forEach((v, i) => { const x = xScale(i, totalDays), y = yScale(v); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+    ctx.strokeStyle = lClr; ctx.lineWidth = lW; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.stroke();
+  };
+
+  drawLine(pmCum, daysInPM, pmClr, pmFill, 1.5, [4, 3]);
+  drawLine(cmCum, daysInCM, cmClr, cmFill, 2, null);
+  ctx.setLineDash([]);
+
+  // Today dot
+  if (cmCum.length > 0) {
+    const tx = xScale(cmCum.length - 1, daysInCM), ty = yScale(cmCum[cmCum.length - 1]);
+    ctx.beginPath(); ctx.arc(tx, ty, 4, 0, Math.PI * 2);
+    ctx.fillStyle = cmClr; ctx.fill();
+    ctx.strokeStyle = isLight ? '#fff' : '#1a1a2e'; ctx.lineWidth = 1.5; ctx.stroke();
+  }
+
+  // X-axis
+  ctx.fillStyle = labelClr; ctx.font = '600 8.5px system-ui'; ctx.textAlign = 'center';
+  [1, 7, 14, 21, daysInCM].forEach(d => {
+    if (d <= daysInCM) ctx.fillText(d, xScale(d - 1, daysInCM), H - 5);
   });
-  const dowAvgs = dowTotByDow.map((tot,i)=>dowDayCount[i]>0?tot/dowDayCount[i]:0);
-  const peakDow = dowAvgs.indexOf(Math.max(...dowAvgs));
 
-  // Spend per day this month (excluding Rent and Money Transfer)
-  const DAILY_EXCL = ['Rent','Money Transfer','Transfers & Gifts'];
-  const cmTxns = txnsForYM(cm);
-  const cmDailySpend = cmTxns
-    .filter(t => !DAILY_EXCL.includes(t.category))
-    .reduce((s,t) => s+t.amount, 0);
-  const daysElapsed = Math.max(today, 1);
-  const spendPerDay = cmDailySpend / daysElapsed;
-
-  // Avg spend over last 3 months up to the same day-of-month
-  const avgByDay3Day = months3.reduce((sum, ym) => {
-    const daysInM = new Date(parseInt(ym.split('-')[0]), parseInt(ym.split('-')[1]), 0).getDate();
-    const capDay  = Math.min(today, daysInM);
-    const mSpend  = txnsForYM(ym).filter(t => {
-      const d = new Date(t.date+'T00:00:00');
-      return d.getDate() <= capDay && !exc.includes(t.category) && !DAILY_EXCL.includes(t.category);
-    }).reduce((s,t) => s+t.amount, 0);
-    return sum + (capDay > 0 ? mSpend / capDay : 0);
-  }, 0) / 3;
-
-  // Savings last month
-  const pmAllTxns = txnsForYM(pm);
-  const pmTotalSpend = pmAllTxns.reduce((s,t) => s+t.amount, 0);
-  const incomeVal = state.income || 0;
-  const lastMonthSavings = incomeVal - pmTotalSpend;
-  const lastMonthSavColor = lastMonthSavings >= 0 ? 'var(--green)' : '#ff8a80';
-
-  // Hero-style glassy gradient pills — same as hero card
-  const PILL_BRD = 'rgba(255,255,255,.1)';
-  const PILL_SH  = '0 4px 20px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.07)';
-  const PILL_BG  = 'linear-gradient(135deg,#1a0e3a 0%,#0d1a3a 50%,#0a1f2e 100%)';
-  const PILL_ORB = 'rgba(124,111,247,.18)';
-
-  const pill = (label, val, accent) =>
-    `<div style="flex:1;background:${PILL_BG};border:1px solid ${PILL_BRD};border-radius:14px;padding:11px 12px;box-shadow:${PILL_SH};position:relative;overflow:hidden;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;flex-direction:column;justify-content:space-between;min-height:64px">
-      <div style="position:absolute;top:-18px;right:-18px;width:56px;height:56px;border-radius:50%;background:${PILL_ORB};pointer-events:none"></div>
-      <div style="font-size:8px;font-weight:800;color:#ffffff;text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px;position:relative;line-height:1.3;word-break:break-word">${label}</div>
-      <div style="font-size:15px;font-weight:800;color:#ffffff;position:relative;margin-top:auto">${val}</div>
+  // ── Legend ──
+  const legEl = document.getElementById('sov-legend');
+  if (legEl) legEl.innerHTML = `
+    <div style="display:flex;align-items:center;gap:5px">
+      <svg width="18" height="6"><line x1="0" y1="3" x2="18" y2="3" stroke="rgba(255,255,255,.9)" stroke-width="2.5" stroke-linecap="round"/></svg>
+      <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.85)">${ymLabel(cm)}</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:5px">
+      <svg width="18" height="6"><line x1="0" y1="3" x2="18" y2="3" stroke="rgba(255,255,255,.5)" stroke-width="1.5" stroke-dasharray="4,2" stroke-linecap="round"/></svg>
+      <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.6)">${ymLabel(pm)}</span>
     </div>`;
 
-  el.innerHTML =
-    pill(`Day ${today} · Last mo`, fmt(pmByDay),              pmByDay > curSpent ? 'var(--green)' : '#ff8a80') +
-    pill(`Proj. Saving`, (() => { const inc=state.income||0; if(!inc) return '—'; const lastDay=new Date(NOW.getFullYear(),NOW.getMonth()+1,0).getDate(); const allSpentCm=txnsForYM(cm).reduce((s,t)=>s+t.amount,0); const projTotal=(allSpentCm/daysElapsed)*lastDay; const proj=inc-projTotal; const c=proj>=0?'var(--green)':'#ff8a80'; return `<span style='color:${c}'>${proj>=0?'+':'-'}${fmtK(Math.abs(proj))}</span>`; })(), 'var(--accent2)') +
-    pill(`Savings · ${ymLabel(pm)}`, incomeVal > 0 ? fmt(Math.abs(lastMonthSavings)) : '—', lastMonthSavColor);
+  // ── Savings mini-pills in header ──
+  const incomeVal = state.income || 0;
+  const pmAllSpend = txnsForYM(pm).reduce((s,t) => s+t.amount, 0);
+  const lastMonSav = incomeVal > 0 ? incomeVal - pmAllSpend : null;
+  const projSav = incomeVal > 0 ? (() => {
+    const allSpentCm = txnsForYM(cm).reduce((s,t) => s+t.amount, 0);
+    const projTotal  = (allSpentCm / today) * daysInCM;
+    return incomeVal - projTotal;
+  })() : null;
+
+  const savPill = (label, val, positive) => {
+    const dotClr = positive ? '#22d3a0' : '#ff6b6b';
+    const bdr    = positive ? 'rgba(34,211,160,.3)' : 'rgba(255,107,107,.3)';
+    const ico    = positive ? '💰' : '⚠';
+    return `<div style="flex:1;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.06);border:1px solid ${bdr};border-radius:10px;padding:5px 10px;min-width:0;overflow:hidden">
+      <div style="width:6px;height:6px;border-radius:50%;background:${dotClr};flex-shrink:0"></div>
+      <div style="min-width:0">
+        <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap">${label}</div>
+        <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.85);white-space:nowrap">${ico} ${val}</div>
+      </div>
+    </div>`;
+  };
+
+  const savRowEl = document.getElementById('sov-savings-row');
+  if (savRowEl) {
+    const pills = [];
+    if (lastMonSav !== null) pills.push(savPill(`${ymLabel(pm)} saved`, lastMonSav >= 0 ? fmtK(lastMonSav) : '−'+fmtK(-lastMonSav), lastMonSav >= 0));
+    if (projSav   !== null) pills.push(savPill('Proj. this month', projSav >= 0 ? fmtK(projSav) : '−'+fmtK(-projSav), projSav >= 0));
+    savRowEl.innerHTML = pills.join('');
+    savRowEl.style.display = pills.length ? 'flex' : 'none';
+  }
+
+  // ── Stats strip (3 colored tiles) ──
+  const pace    = cmTotal > 0 ? (cmTotal / today) * daysInCM : 0;
+  const pmByDayToday = pmCum[Math.min(today - 1, pmCum.length - 1)] || 0;
+  const paceClr = pace > pmTotal * 1.05 ? 'var(--red)' : 'var(--green)';
+  const statClr = cmTotal > pmByDayToday * 1.05 ? 'var(--red)' : 'var(--green)';
+  const pctDiff = pmTotal > 0 ? ((cmTotal - pmTotal) / pmTotal * 100) : 0;
+  const diffClr = pctDiff > 5 ? 'var(--red)' : pctDiff < -5 ? 'var(--green)' : 'var(--text2)';
+  const diffSign = pctDiff >= 0 ? '+' : '';
+
+  const tile = (label, val, color, accentBg) =>
+    `<div style="flex:1;padding:10px 10px;text-align:center;border-right:1px solid var(--border);${accentBg ? 'background:'+accentBg+';' : ''}">
+      <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;white-space:nowrap">${label}</div>
+      <div style="font-size:13px;font-weight:800;color:${color || 'var(--text)'}">${val}</div>
+    </div>`;
+
+  const statsEl = document.getElementById('sov-stats');
+  if (statsEl) statsEl.innerHTML =
+    tile(`${ymLabel(pm)}`, fmtK(pmTotal), 'var(--text2)') +
+    tile(`Day ${today} so far`, fmtK(cmTotal), statClr, statClr === 'var(--red)' ? 'rgba(255,107,107,.06)' : 'rgba(34,211,160,.06)') +
+    `<div style="flex:1;padding:10px 10px;text-align:center;${paceClr==='var(--red)'?'background:rgba(255,107,107,.06)':'background:rgba(34,211,160,.06)'}">
+      <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Pace</div>
+      <div style="font-size:13px;font-weight:800;color:${paceClr}">${fmtK(pace)}</div>
+      <div style="font-size:9px;font-weight:700;color:${diffClr};margin-top:2px">${diffSign}${pctDiff.toFixed(0)}% vs last mo</div>
+    </div>`;
+
+  // ── Insight rows ──
+  const DAILY_EXCL = ['Rent','Money Transfer','Transfers & Gifts'];
+  const cmDailyAmt = txnsForYM(cm).filter(t => !DAILY_EXCL.includes(t.category)).reduce((s,t) => s+t.amount, 0);
+  const spendPerDay = cmDailyAmt / Math.max(today, 1);
+
+  const todayDow = NOW.getDay();
+  const daysToMon = todayDow === 0 ? 6 : todayDow - 1;
+  const thisWeekMon = new Date(NOW); thisWeekMon.setDate(NOW.getDate() - daysToMon);
+  const lastWeekMon = new Date(thisWeekMon); lastWeekMon.setDate(thisWeekMon.getDate() - 7);
+  const lastWeekSun = new Date(thisWeekMon); lastWeekSun.setDate(thisWeekMon.getDate() - 1);
+  const lw = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const lastWeekSpend = state.transactions.filter(t => t.date && t.date >= lw(lastWeekMon) && t.date <= lw(lastWeekSun) && !DAILY_EXCL.includes(t.category)).reduce((s,t) => s+t.amount, 0);
+  const lwLabel = `${lastWeekMon.toLocaleDateString('en-US',{month:'short',day:'numeric'})}–${lastWeekSun.toLocaleDateString('en-US',{month:'short',day:'numeric'})}`;
+
+  const yd = new Date(NOW); yd.setDate(yd.getDate() - 1);
+  const ydStr = lw(yd);
+  const ydSpend = state.transactions.filter(t => t.date === ydStr).reduce((s,t) => s+t.amount, 0);
+  const ydLabel = yd.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});
+
+  const clrLabel = isLight ? '#44445a' : '#9090b8';
+  const clrAmt   = isLight ? '#4f35d4' : '#c4b5fd';
+  const clrDiv   = isLight ? 'rgba(0,0,0,.08)' : 'rgba(255,255,255,.08)';
+
+  const irow = (icon, label, sublabel, val, valClr) =>
+    `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+      <div style="display:flex;align-items:center;gap:7px;min-width:0">
+        <span style="font-size:15px;flex-shrink:0">${icon}</span>
+        <div style="min-width:0">
+          <div style="font-size:11px;font-weight:700;color:${clrLabel};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${label}</div>
+          ${sublabel ? `<div style="font-size:10px;color:var(--text3)">${sublabel}</div>` : ''}
+        </div>
+      </div>
+      <span style="font-size:13px;font-weight:800;color:${valClr};flex-shrink:0">${val}</span>
+    </div>`;
+
+  const sovInsights = document.getElementById('sov-insights');
+  if (sovInsights) {
+    sovInsights.innerHTML = [
+      irow('📅', '$/Day excl. Rent', ymLabel(cm), fmt(spendPerDay) + '/day', clrAmt),
+      `<div style="height:1px;background:${clrDiv}"></div>`,
+      irow('📆', 'Last week', lwLabel, lastWeekSpend > 0 ? fmt(lastWeekSpend) : '—', lastWeekSpend > 0 ? clrAmt : 'var(--text3)'),
+      irow('🕐', 'Yesterday', ydLabel, ydSpend > 0 ? fmt(ydSpend) : '—', ydSpend > 0 ? clrAmt : 'var(--text3)'),
+    ].join('');
+  }
 }
 
 function renderBudgetList() {
@@ -2805,8 +2921,186 @@ function buildHistoricalSection() {
 
 
 // ═══════════════════════════════════════════════════════════════
-// SETTINGS
+// AUTO BUDGET
 // ═══════════════════════════════════════════════════════════════
+function generateAutoBudget() {
+  const months = parseInt(document.getElementById('auto-budget-months').value) || 6;
+  const cm = currentYM();
+
+  // Collect the last N months (excluding current)
+  const lookbackYMs = [];
+  for (let i = 1; i <= months; i++) {
+    const d = new Date(NOW.getFullYear(), NOW.getMonth() - i, 1);
+    const ym = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    if (txnsForYM(ym).length > 0) lookbackYMs.push(ym);
+  }
+
+  if (lookbackYMs.length === 0) {
+    showToast('Not enough historical data yet', 'error'); return;
+  }
+
+  // Compute per-cat monthly avg across those months
+  const catTotals = {}, catMonths = {};
+  lookbackYMs.forEach(ym => {
+    const byC = sumByCat(txnsForYM(ym));
+    Object.entries(byC).forEach(([cat, amt]) => {
+      catTotals[cat] = (catTotals[cat] || 0) + amt;
+      catMonths[cat] = (catMonths[cat] || 0) + 1;
+    });
+  });
+
+  // Build suggestions — round to nearest $5
+  const suggestions = [];
+  CATEGORIES.forEach(cat => {
+    if (!catTotals[cat]) return;
+    const avg = catTotals[cat] / lookbackYMs.length;
+    const rounded = Math.ceil(avg / 5) * 5;
+    suggestions.push({ cat, avg, rounded, months: catMonths[cat] });
+  });
+  suggestions.sort((a, b) => b.avg - a.avg);
+
+  // Render
+  const listEl = document.getElementById('auto-budget-list');
+  const rowsEl = document.getElementById('auto-budget-rows');
+  const subEl  = document.getElementById('auto-budget-subtitle');
+  if (!listEl || !rowsEl) return;
+
+  subEl.textContent = `${lookbackYMs.length}-month avg · ${suggestions.length} categories`;
+  rowsEl.innerHTML = suggestions.map(s => {
+    const cur = state.budgets[s.cat] || 0;
+    const diff = s.rounded - cur;
+    const diffColor = diff > 0 ? 'var(--yellow)' : diff < 0 ? 'var(--green)' : 'var(--text3)';
+    const diffLabel = cur > 0 ? (diff > 0 ? `+${fmt(diff)}` : diff < 0 ? `−${fmt(-diff)}` : 'same') : 'new';
+    return `
+    <div style="background:var(--bg4);border:1px solid var(--border);border-radius:12px;padding:10px 12px">
+      <div style="display:flex;align-items:center;gap:8px;min-width:0">
+        <div style="font-size:18px;flex-shrink:0">${catIcon(s.cat)}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.cat}</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:1px">Avg ${fmt(s.avg)}/mo · ${s.months} mo of data</div>
+        </div>
+        ${cur > 0 ? `<div style="font-size:10px;font-weight:700;color:${diffColor};background:${diffColor}20;padding:2px 7px;border-radius:6px;flex-shrink:0">${diffLabel}</div>` : ''}
+        <div style="position:relative;flex-shrink:0">
+          <span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12px;font-weight:700;color:var(--text3);pointer-events:none">$</span>
+          <input type="number" id="ab-input-${s.cat.replace(/\W/g,'_')}" value="${s.rounded}"
+            style="width:88px;text-align:right;padding:8px 8px 8px 18px;font-size:13px;font-weight:700;border-radius:10px"
+            oninput="updateAllocBar()">
+        </div>
+        <button onclick="applySingleAutoBudget('${s.cat.replace(/'/g,"\\'")}','${s.cat.replace(/\W/g,'_')}')"
+          style="flex-shrink:0;background:rgba(124,111,247,.18);border:1px solid rgba(124,111,247,.3);color:var(--accent2);font-size:12px;font-weight:700;border-radius:10px;padding:8px 14px;font-family:inherit;cursor:pointer">Apply</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  listEl.style.display = 'block';
+  showToast(`Suggestions ready · ${suggestions.length} categories`);
+}
+
+// ── Total-budget split ──────────────────────────────────────────
+function splitByTotal() {
+  const totalInp = document.getElementById('ab-total-budget');
+  const target = parseFloat(totalInp?.value) || 0;
+  if (target <= 0) { showToast('Enter a total budget amount first', 'error'); return; }
+
+  // If suggestions haven't been generated yet, generate them first
+  const rowsEl = document.getElementById('auto-budget-rows');
+  if (!rowsEl || !rowsEl.children.length) {
+    generateAutoBudget();
+    // After generateAutoBudget populates rows, re-run split
+    setTimeout(() => _doSplit(target), 50);
+    return;
+  }
+  _doSplit(target);
+}
+
+function _doSplit(target) {
+  const inputs = document.querySelectorAll('#auto-budget-rows [id^="ab-input-"]');
+  if (!inputs.length) { showToast('Run Suggest first', 'error'); return; }
+
+  // Read current raw (unrounded) weights from the stored suggestions, falling back to current input values
+  const vals = [];
+  inputs.forEach(inp => vals.push(Math.max(parseFloat(inp.value) || 0, 0)));
+  const total = vals.reduce((s, v) => s + v, 0);
+  if (total === 0) { showToast('No spending history to split from', 'error'); return; }
+
+  // Proportional allocation, rounded to nearest $5, then fix rounding error on largest
+  const raw = vals.map(v => (v / total) * target);
+  const rounded = raw.map(v => Math.max(Math.round(v / 5) * 5, 0));
+  const diff = target - rounded.reduce((s, v) => s + v, 0);
+  // Add rounding remainder to the largest category
+  if (diff !== 0) {
+    const maxIdx = rounded.indexOf(Math.max(...rounded));
+    rounded[maxIdx] = Math.max(rounded[maxIdx] + diff, 0);
+  }
+
+  // Write back into inputs
+  inputs.forEach((inp, i) => { inp.value = rounded[i]; });
+
+  // Show the total bar
+  document.getElementById('ab-total-bar').style.display = 'block';
+  updateAllocBar(target);
+  showToast(`Split $${target.toLocaleString()} across ${inputs.length} categories`);
+}
+
+function updateAllocBar(target) {
+  const inputs = document.querySelectorAll('#auto-budget-rows [id^="ab-input-"]');
+  const allocated = Array.from(inputs).reduce((s, inp) => s + (parseFloat(inp.value) || 0), 0);
+  const tgt = target || parseFloat(document.getElementById('ab-total-budget')?.value) || 0;
+
+  const allocEl   = document.getElementById('ab-alloc-amt');
+  const targetEl  = document.getElementById('ab-target-amt');
+  const badgeEl   = document.getElementById('ab-remain-badge');
+  const barEl     = document.getElementById('ab-alloc-bar');
+  if (!allocEl || !tgt) return;
+
+  const remain = tgt - allocated;
+  const pct    = Math.min(allocated / tgt * 100, 100);
+  const over   = allocated > tgt;
+
+  allocEl.textContent  = '$' + allocated.toLocaleString('en-US', {maximumFractionDigits:0});
+  targetEl.textContent = '$' + tgt.toLocaleString('en-US', {maximumFractionDigits:0});
+  badgeEl.textContent  = over ? `+$${Math.abs(remain).toLocaleString('en-US',{maximumFractionDigits:0})} over` : `$${remain.toLocaleString('en-US',{maximumFractionDigits:0})} left`;
+  badgeEl.style.background = over ? 'rgba(255,107,107,.18)' : 'rgba(34,211,160,.18)';
+  badgeEl.style.color      = over ? 'var(--red)' : 'var(--green)';
+  barEl.style.width      = pct + '%';
+  barEl.style.background = over ? 'var(--red)' : pct > 90 ? 'var(--yellow)' : 'var(--green)';
+}
+
+function onTotalBudgetInput() {
+  const tgt = parseFloat(document.getElementById('ab-total-budget')?.value) || 0;
+  const bar = document.getElementById('ab-total-bar');
+  if (bar && bar.style.display !== 'none' && tgt > 0) updateAllocBar(tgt);
+}
+
+function applySingleAutoBudget(cat, safeId) {
+  const inp = document.getElementById('ab-input-' + safeId);
+  if (!inp) return;
+  const val = parseFloat(inp.value) || 0;
+  if (val <= 0) { showToast('Enter a value > 0', 'error'); return; }
+  state.budgets[cat] = val;
+  renderAll(); save();
+  // Visual feedback on button
+  const btn = inp.parentElement.nextElementSibling;
+  if (btn) { const orig = btn.textContent; btn.textContent = '✓'; btn.style.background = 'rgba(34,211,160,.25)'; btn.style.color = 'var(--green)'; setTimeout(() => { btn.textContent = orig; btn.style.background = ''; btn.style.color = ''; }, 1500); }
+  showToast(`Budget set for ${cat}`);
+}
+
+function applyAllAutoBudgets() {
+  const rows = document.querySelectorAll('#auto-budget-rows [id^="ab-input-"]');
+  let count = 0;
+  rows.forEach(inp => {
+    const cat = inp.id.replace('ab-input-','').replace(/_/g,' ');
+    // Find actual cat name from CATEGORIES (safeId may have collapsed special chars)
+    const matched = CATEGORIES.find(c => c.replace(/\W/g,'_') === inp.id.replace('ab-input-',''));
+    const actualCat = matched || cat;
+    const val = parseFloat(inp.value) || 0;
+    if (val > 0) { state.budgets[actualCat] = val; count++; }
+  });
+  renderAll(); save();
+  showToast(`Applied ${count} budgets ✓`);
+}
+
+
 function renderSettings() {
   document.getElementById('monthly-income').value = state.income||'';
   renderBudgetSettings();
@@ -3377,6 +3671,7 @@ function switchTab(tabId) {
 // BOOT
 // ═══════════════════════════════════════════════════════════════
 window.addEventListener('load', init);
+window.addEventListener('resize', () => { renderSpendOverview(currentYM()); });
 
 </script>
 </body>
