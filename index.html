@@ -1662,12 +1662,18 @@ function renderSpendOverview(cm) {
   const PAD = { top: 8, right: 10, bottom: 22, left: 46 };
   const plotW = W - PAD.left - PAD.right;
   const plotH = H - PAD.top - PAD.bottom;
+
+  // Both lines share the same x-axis: day number 1..max(daysInCM, daysInPM)
+  // This way day 15 of CM and day 15 of PM are at the same x position
+  const totalDays = Math.max(daysInCM, daysInPM);
   const niceMax = Math.ceil(Math.max(...pmCum, ...cmCum, 1) / 500) * 500;
 
-  const xScale = (i, total) => PAD.left + (i / (total - 1 || 1)) * plotW;
+  const xScale = (dayIdx) => PAD.left + (dayIdx / (totalDays - 1 || 1)) * plotW;
   const yScale = v => PAD.top + plotH - (v / niceMax) * plotH;
 
   ctx.clearRect(0, 0, W, H);
+
+  // Grid lines
   ctx.strokeStyle = gridClr; ctx.lineWidth = 1;
   [0.25, 0.5, 0.75, 1].forEach(f => {
     const y = PAD.top + plotH * (1 - f);
@@ -1676,37 +1682,58 @@ function renderSpendOverview(cm) {
     ctx.fillText(fmtK(niceMax * f), PAD.left - 4, y + 3);
   });
 
-  const drawLine = (data, totalDays, lClr, fClr, lW, dash) => {
+  const drawLine = (data, lClr, fClr, lW, dash) => {
     if (data.length < 2) return;
     if (dash) ctx.setLineDash(dash); else ctx.setLineDash([]);
-    // fill
     ctx.beginPath();
-    data.forEach((v, i) => { const x = xScale(i, totalDays), y = yScale(v); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
-    ctx.lineTo(xScale(data.length - 1, totalDays), yScale(0));
-    ctx.lineTo(xScale(0, totalDays), yScale(0));
+    data.forEach((v, i) => { const x = xScale(i), y = yScale(v); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+    ctx.lineTo(xScale(data.length - 1), yScale(0));
+    ctx.lineTo(xScale(0), yScale(0));
     ctx.closePath(); ctx.fillStyle = fClr; ctx.fill();
-    // stroke
     ctx.beginPath();
-    data.forEach((v, i) => { const x = xScale(i, totalDays), y = yScale(v); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+    data.forEach((v, i) => { const x = xScale(i), y = yScale(v); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
     ctx.strokeStyle = lClr; ctx.lineWidth = lW; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.stroke();
   };
 
-  drawLine(pmCum, daysInPM, pmClr, pmFill, 1.5, [4, 3]);
-  drawLine(cmCum, daysInCM, cmClr, cmFill, 2, null);
+  // PM full month (dashed) — day indices 0..daysInPM-1
+  drawLine(pmCum, pmClr, pmFill, 1.5, [4, 3]);
+  // CM current month (solid) — day indices 0..today-1
+  drawLine(cmCum, cmClr, cmFill, 2, null);
   ctx.setLineDash([]);
 
-  // Today dot
+  // Vertical "today" reference line
+  const todayX = xScale(today - 1);
+  ctx.beginPath();
+  ctx.moveTo(todayX, PAD.top);
+  ctx.lineTo(todayX, PAD.top + plotH);
+  ctx.strokeStyle = isLight ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.12)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3, 3]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Today dot on CM line
   if (cmCum.length > 0) {
-    const tx = xScale(cmCum.length - 1, daysInCM), ty = yScale(cmCum[cmCum.length - 1]);
+    const tx = xScale(cmCum.length - 1), ty = yScale(cmCum[cmCum.length - 1]);
     ctx.beginPath(); ctx.arc(tx, ty, 4, 0, Math.PI * 2);
     ctx.fillStyle = cmClr; ctx.fill();
     ctx.strokeStyle = isLight ? '#fff' : '#1a1a2e'; ctx.lineWidth = 1.5; ctx.stroke();
   }
 
-  // X-axis
+  // PM day-N dot (same day index as today, if PM had that day)
+  const pmDayIdx = Math.min(today - 1, pmCum.length - 1);
+  if (pmDayIdx >= 0 && pmCum[pmDayIdx] > 0) {
+    const px = xScale(pmDayIdx), py = yScale(pmCum[pmDayIdx]);
+    ctx.beginPath(); ctx.arc(px, py, 3, 0, Math.PI * 2);
+    ctx.fillStyle = isLight ? 'rgba(100,116,139,.7)' : 'rgba(148,163,184,.8)'; ctx.fill();
+    ctx.strokeStyle = isLight ? '#fff' : '#1a1a2e'; ctx.lineWidth = 1.5; ctx.stroke();
+  }
+
+  // X-axis day labels — use shared day numbers
   ctx.fillStyle = labelClr; ctx.font = '600 8.5px system-ui'; ctx.textAlign = 'center';
-  [1, 7, 14, 21, daysInCM].forEach(d => {
-    if (d <= daysInCM) ctx.fillText(d, xScale(d - 1, daysInCM), H - 5);
+  const labelDays = [1, 7, 14, 21, totalDays];
+  labelDays.forEach(d => {
+    if (d <= totalDays) ctx.fillText(d, xScale(d - 1), H - 5);
   });
 
   // ── Legend ──
@@ -1754,13 +1781,14 @@ function renderSpendOverview(cm) {
   }
 
   // ── Stats strip (3 colored tiles) ──
-  const pace    = cmTotal > 0 ? (cmTotal / today) * daysInCM : 0;
+  const pace         = cmTotal > 0 ? (cmTotal / today) * daysInCM : 0;
+  // pmByDayToday = last month cumulative spend up to the same day number as today
   const pmByDayToday = pmCum[Math.min(today - 1, pmCum.length - 1)] || 0;
-  const paceClr = pace > pmTotal * 1.05 ? 'var(--red)' : 'var(--green)';
-  const statClr = cmTotal > pmByDayToday * 1.05 ? 'var(--red)' : 'var(--green)';
-  const pctDiff = pmTotal > 0 ? ((cmTotal - pmTotal) / pmTotal * 100) : 0;
-  const diffClr = pctDiff > 5 ? 'var(--red)' : pctDiff < -5 ? 'var(--green)' : 'var(--text2)';
-  const diffSign = pctDiff >= 0 ? '+' : '';
+  const vsLastDayClr = cmTotal > pmByDayToday * 1.05 ? 'var(--red)' : cmTotal < pmByDayToday * 0.95 ? 'var(--green)' : 'var(--text2)';
+  const paceClr      = pace > pmTotal * 1.05 ? 'var(--red)' : 'var(--green)';
+  const pctDiff      = pmTotal > 0 ? ((pace - pmTotal) / pmTotal * 100) : 0;
+  const diffClr      = pctDiff > 5 ? 'var(--red)' : pctDiff < -5 ? 'var(--green)' : 'var(--text2)';
+  const diffSign     = pctDiff >= 0 ? '+' : '';
 
   const tile = (label, val, color, accentBg) =>
     `<div style="flex:1;padding:10px 10px;text-align:center;border-right:1px solid var(--border);${accentBg ? 'background:'+accentBg+';' : ''}">
@@ -1770,12 +1798,12 @@ function renderSpendOverview(cm) {
 
   const statsEl = document.getElementById('sov-stats');
   if (statsEl) statsEl.innerHTML =
-    tile(`${ymLabel(pm)}`, fmtK(pmTotal), 'var(--text2)') +
-    tile(`Day ${today} so far`, fmtK(cmTotal), statClr, statClr === 'var(--red)' ? 'rgba(255,107,107,.06)' : 'rgba(34,211,160,.06)') +
+    tile(`${ymLabel(cm)} day ${today}`, fmtK(cmTotal), vsLastDayClr, vsLastDayClr === 'var(--red)' ? 'rgba(255,107,107,.06)' : vsLastDayClr === 'var(--green)' ? 'rgba(34,211,160,.06)' : '') +
+    tile(`${ymLabel(pm)} day ${today}`, fmtK(pmByDayToday), 'var(--text2)') +
     `<div style="flex:1;padding:10px 10px;text-align:center;${paceClr==='var(--red)'?'background:rgba(255,107,107,.06)':'background:rgba(34,211,160,.06)'}">
-      <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Pace</div>
+      <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Proj. full mo</div>
       <div style="font-size:13px;font-weight:800;color:${paceClr}">${fmtK(pace)}</div>
-      <div style="font-size:9px;font-weight:700;color:${diffClr};margin-top:2px">${diffSign}${pctDiff.toFixed(0)}% vs last mo</div>
+      <div style="font-size:9px;font-weight:700;color:${diffClr};margin-top:1px">${diffSign}${pctDiff.toFixed(0)}% vs ${ymLabel(pm)}</div>
     </div>`;
 
   // ── Insight rows ──
