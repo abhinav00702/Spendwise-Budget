@@ -875,74 +875,32 @@ select{
       <button onclick="saveBudgets()" style="background:rgba(124,111,247,.15);border:none;color:var(--accent2);font-size:12px;font-family:inherit;cursor:pointer;font-weight:700;border-radius:12px;padding:7px 14px">Save All</button>
     </div>
     <div id="budget-limits-body" class="collapsible-section">
+      <!-- Total budget input -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <div style="font-size:12px;font-weight:600;color:var(--text2);flex-shrink:0">Total budget</div>
+        <div style="position:relative;flex:1">
+          <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:700;color:var(--text3);pointer-events:none">$</span>
+          <input type="number" id="total-budget-input" placeholder="0" step="100"
+            style="width:100%;padding:9px 10px 9px 22px;font-size:14px;font-weight:700;border-radius:12px;box-sizing:border-box"
+            oninput="onTotalBudgetChange()">
+        </div>
+        <div id="total-budget-status" style="font-size:12px;font-weight:700;color:var(--text3);flex-shrink:0;white-space:nowrap"></div>
+      </div>
+      <!-- Progress bar (shown when total is set) -->
+      <div id="total-budget-bar-wrap" style="display:none;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+          <span style="font-size:10px;font-weight:700;color:var(--text3)" id="total-budget-bar-label">Allocated: $0</span>
+          <span style="font-size:10px;font-weight:700;border-radius:6px;padding:2px 8px" id="total-budget-bar-badge"></span>
+        </div>
+        <div style="height:5px;background:var(--bg4);border-radius:3px;overflow:hidden">
+          <div id="total-budget-bar" style="height:100%;border-radius:3px;transition:width .3s,background .3s"></div>
+        </div>
+      </div>
       <div style="margin-bottom:10px;padding:8px 12px;background:var(--bg4);border-radius:12px;font-size:11px;color:var(--text2);line-height:1.6">
-        🟢 <b style="color:var(--green)">Toggle On</b> = included in budget &nbsp;·&nbsp; ⚫ <b style="color:var(--text3)">Toggle Off</b> = excluded from budget calculations (e.g. Rent, Transfers)
+        🟢 <b style="color:var(--green)">Toggle On</b> = included in budget &nbsp;·&nbsp; ⚫ <b style="color:var(--text3)">Toggle Off</b> = excluded (e.g. Rent, Transfers) &nbsp;·&nbsp; <span style="color:var(--text3)">Avg = 6-mo average</span>
       </div>
       <div class="card-elevated" style="padding:16px;margin-bottom:0">
-        <div id="budget-settings-list" style="max-height:340px;overflow-y:auto;scrollbar-width:thin"></div>
-      </div>
-    </div>
-
-    <!-- Auto Budget -->
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;margin-top:10px">
-      <button onclick="toggleSection('auto-budget-body','chevron-autobudget')" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:0">
-        <div style="font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.5px;text-transform:uppercase">✨ Auto Budget</div>
-        <svg id="chevron-autobudget" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .3s;flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-    </div>
-    <div id="auto-budget-body" class="collapsible-section collapsed">
-      <div class="card-elevated" style="padding:16px;margin-bottom:0">
-        <div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:12px">
-          Suggests budgets from your historical spending. Select how many months to look back, review, then apply individually or all at once.
-        </div>
-
-        <!-- Row 1: look back + suggest -->
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
-          <div style="font-size:12px;font-weight:600;color:var(--text);flex-shrink:0">Look back</div>
-          <select id="auto-budget-months" style="flex:1;border-radius:10px;padding:8px 12px;font-size:12px">
-            <option value="3">3 months</option>
-            <option value="6" selected>6 months</option>
-            <option value="12">12 months</option>
-          </select>
-          <button onclick="generateAutoBudget()" style="flex-shrink:0;background:var(--accent);border:none;color:#fff;font-size:12px;font-weight:700;border-radius:10px;padding:9px 16px;font-family:inherit;cursor:pointer">Suggest</button>
-        </div>
-
-        <!-- Row 2: total budget + auto-split -->
-        <div style="display:flex;gap:8px;align-items:center;padding:10px 12px;background:var(--bg4);border:1px solid var(--border);border-radius:12px;margin-bottom:12px">
-          <div style="font-size:12px;font-weight:600;color:var(--text);flex-shrink:0">Total budget</div>
-          <div style="position:relative;flex:1">
-            <input type="number" id="ab-total-budget" placeholder="e.g. 5000" step="100"
-              style="width:100%;padding:8px 10px;font-size:13px;font-weight:700;border-radius:10px;box-sizing:border-box"
-              oninput="onTotalBudgetInput()">
-          </div>
-          <button onclick="splitByTotal()" style="flex-shrink:0;background:linear-gradient(135deg,#7c6ff7,#00d4a0);border:none;color:#fff;font-size:12px;font-weight:700;border-radius:10px;padding:9px 14px;font-family:inherit;cursor:pointer">⚡ Split</button>
-        </div>
-
-        <div id="auto-budget-list" style="display:none">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-            <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.4px" id="auto-budget-subtitle"></div>
-            <button onclick="applyAllAutoBudgets()" style="background:var(--green);border:none;color:#fff;font-size:11px;font-weight:700;border-radius:8px;padding:6px 12px;font-family:inherit;cursor:pointer">Apply All</button>
-          </div>
-
-          <!-- Live running total bar -->
-          <div id="ab-total-bar" style="display:none;margin-bottom:10px;padding:10px 12px;background:var(--bg4);border:1px solid var(--border);border-radius:12px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-              <span style="font-size:11px;font-weight:700;color:var(--text2)">Allocated</span>
-              <div style="display:flex;align-items:center;gap:6px">
-                <span style="font-size:12px;font-weight:800;color:var(--text)" id="ab-alloc-amt">$0</span>
-                <span style="font-size:11px;color:var(--text3)">of</span>
-                <span style="font-size:12px;font-weight:800;color:var(--accent2)" id="ab-target-amt">$0</span>
-                <span style="font-size:11px;font-weight:700;padding:1px 7px;border-radius:6px" id="ab-remain-badge"></span>
-              </div>
-            </div>
-            <div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden">
-              <div id="ab-alloc-bar" style="height:100%;border-radius:3px;transition:width .2s,background .2s"></div>
-            </div>
-          </div>
-
-          <div id="auto-budget-rows" style="display:flex;flex-direction:column;gap:6px"></div>
-          <div style="margin-top:10px;font-size:10px;color:var(--text3);line-height:1.5">💡 Suggestions are rounded averages of your actual spend. You can edit each value before applying.</div>
-        </div>
+        <div id="budget-settings-list" style="max-height:420px;overflow-y:auto;scrollbar-width:thin"></div>
       </div>
     </div>
 
@@ -2969,210 +2927,95 @@ function buildHistoricalSection() {
 }
 
 
+
+
 // ═══════════════════════════════════════════════════════════════
-// AUTO BUDGET
+// TOTAL BUDGET HELPERS
 // ═══════════════════════════════════════════════════════════════
-function generateAutoBudget() {
-  const months = parseInt(document.getElementById('auto-budget-months').value) || 6;
-  const cm = currentYM();
-  const exc = state.excludedCats || [];
-
-  // Collect the last N months (excluding current)
-  const lookbackYMs = [];
-  for (let i = 1; i <= months; i++) {
-    const d = new Date(NOW.getFullYear(), NOW.getMonth() - i, 1);
-    const ym = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-    if (txnsForYM(ym).length > 0) lookbackYMs.push(ym);
-  }
-
-  if (lookbackYMs.length === 0) {
-    showToast('Not enough historical data yet', 'error'); return;
-  }
-
-  // Compute per-cat monthly avg across those months (skip excluded cats)
-  const catTotals = {}, catMonths = {};
-  lookbackYMs.forEach(ym => {
-    const byC = sumByCat(txnsForYM(ym));
-    Object.entries(byC).forEach(([cat, amt]) => {
-      if (exc.includes(cat)) return;
-      catTotals[cat] = (catTotals[cat] || 0) + amt;
-      catMonths[cat] = (catMonths[cat] || 0) + 1;
-    });
+function getAllocatedTotal() {
+  let total = 0;
+  document.querySelectorAll('#budget-settings-list input[data-cat]').forEach(inp => {
+    const cat = inp.dataset.cat;
+    const exc = state.excludedCats || [];
+    if (!exc.includes(cat)) total += parseFloat(inp.value) || 0;
   });
-
-  // Build suggestions — round to nearest $5
-  const suggestions = [];
-  CATEGORIES.forEach(cat => {
-    if (exc.includes(cat) || !catTotals[cat]) return;
-    const avg = catTotals[cat] / lookbackYMs.length;
-    const rounded = Math.ceil(avg / 5) * 5;
-    suggestions.push({ cat, avg, rounded, months: catMonths[cat] });
-  });
-  suggestions.sort((a, b) => b.avg - a.avg);
-
-  // Render
-  const listEl = document.getElementById('auto-budget-list');
-  const rowsEl = document.getElementById('auto-budget-rows');
-  const subEl  = document.getElementById('auto-budget-subtitle');
-  if (!listEl || !rowsEl) return;
-
-  subEl.textContent = `${lookbackYMs.length}-mo avg · ${suggestions.length} categories`;
-
-  // Build one unified table-style list — fixed columns, no individual cards
-  rowsEl.innerHTML = `
-    <div style="background:var(--bg4);border:1px solid var(--border);border-radius:14px;overflow:hidden">
-      <!-- Column header -->
-      <div style="display:grid;grid-template-columns:28px 1fr 68px 88px;gap:0;padding:7px 12px;border-bottom:1px solid var(--border);align-items:center">
-        <div></div>
-        <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;padding-left:6px">Category</div>
-        <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;text-align:center">vs now</div>
-        <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;text-align:right;padding-right:8px">Budget</div>
-      </div>
-      <!-- Rows -->
-      ${suggestions.map((s, idx) => {
-        const cur = state.budgets[s.cat] || 0;
-        const diff = s.rounded - cur;
-        const diffColor = diff > 0 ? 'var(--yellow)' : diff < 0 ? 'var(--green)' : 'var(--text3)';
-        const diffLabel = cur > 0 ? (diff > 0 ? `+${fmtK(diff)}` : diff < 0 ? `−${fmtK(-diff)}` : '~') : 'new';
-        const rowBg = idx % 2 === 1 ? 'background:rgba(0,0,0,.04)' : '';
-        return `
-        <div style="display:grid;grid-template-columns:28px 1fr 68px 88px;gap:0;padding:9px 12px;align-items:center;border-bottom:1px solid var(--border);${rowBg}">
-          <div style="font-size:16px;line-height:1">${catIcon(s.cat)}</div>
-          <div style="padding-left:6px;min-width:0">
-            <div style="font-size:12px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.cat}</div>
-            <div style="font-size:10px;color:var(--text3);margin-top:1px;white-space:nowrap">${fmtK(s.avg)}/mo</div>
-          </div>
-          <div style="text-align:center;padding:0 4px">
-            <span style="font-size:10px;font-weight:700;color:${diffColor};white-space:nowrap;display:block;overflow:hidden;text-overflow:ellipsis">${diffLabel}</span>
-          </div>
-          <div style="padding-left:6px">
-            <div style="position:relative">
-              <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:11px;font-weight:700;color:var(--text3);pointer-events:none">$</span>
-              <input type="number" id="ab-input-${s.cat.replace(/\W/g,'_')}" value="${s.rounded}"
-                style="width:100%;text-align:right;padding:6px 8px 6px 16px;font-size:12px;font-weight:700;border-radius:8px;box-sizing:border-box"
-                oninput="updateAllocBar()">
-            </div>
-          </div>
-        </div>`;
-      }).join('')}
-    </div>`;
-
-  listEl.style.display = 'block';
-  showToast(`Suggestions ready · ${suggestions.length} categories`);
+  return total;
 }
 
-// ── Total-budget split ──────────────────────────────────────────
-function splitByTotal() {
-  const totalInp = document.getElementById('ab-total-budget');
-  const target = parseFloat(totalInp?.value) || 0;
-  if (target <= 0) { showToast('Enter a total budget amount first', 'error'); return; }
+function updateTotalBudgetBar() {
+  const tgtInp = document.getElementById('total-budget-input');
+  const tgt = parseFloat(tgtInp?.value) || 0;
+  const allocated = getAllocatedTotal();
+  const barWrap  = document.getElementById('total-budget-bar-wrap');
+  const barEl    = document.getElementById('total-budget-bar');
+  const labelEl  = document.getElementById('total-budget-bar-label');
+  const badgeEl  = document.getElementById('total-budget-bar-badge');
+  const statusEl = document.getElementById('total-budget-status');
 
-  // If suggestions haven't been generated yet, generate them first
-  const rowsEl = document.getElementById('auto-budget-rows');
-  if (!rowsEl || !rowsEl.children.length) {
-    generateAutoBudget();
-    // After generateAutoBudget populates rows, re-run split
-    setTimeout(() => _doSplit(target), 50);
+  if (!tgt) {
+    if (barWrap) barWrap.style.display = 'none';
+    if (statusEl) { statusEl.textContent = ''; }
     return;
   }
-  _doSplit(target);
-}
 
-function _doSplit(target) {
-  const inputs = document.querySelectorAll('#auto-budget-rows [id^="ab-input-"]');
-  if (!inputs.length) { showToast('Run Suggest first', 'error'); return; }
-
-  // Read current raw (unrounded) weights from the stored suggestions, falling back to current input values
-  const vals = [];
-  inputs.forEach(inp => vals.push(Math.max(parseFloat(inp.value) || 0, 0)));
-  const total = vals.reduce((s, v) => s + v, 0);
-  if (total === 0) { showToast('No spending history to split from', 'error'); return; }
-
-  // Proportional allocation, rounded to nearest $5, then fix rounding error on largest
-  const raw = vals.map(v => (v / total) * target);
-  const rounded = raw.map(v => Math.max(Math.round(v / 5) * 5, 0));
-  const diff = target - rounded.reduce((s, v) => s + v, 0);
-  // Add rounding remainder to the largest category
-  if (diff !== 0) {
-    const maxIdx = rounded.indexOf(Math.max(...rounded));
-    rounded[maxIdx] = Math.max(rounded[maxIdx] + diff, 0);
-  }
-
-  // Write back into inputs
-  inputs.forEach((inp, i) => { inp.value = rounded[i]; });
-
-  // Show the total bar
-  document.getElementById('ab-total-bar').style.display = 'block';
-  updateAllocBar(target);
-  showToast(`Split $${target.toLocaleString()} across ${inputs.length} categories`);
-}
-
-function updateAllocBar(target) {
-  const inputs = document.querySelectorAll('#auto-budget-rows [id^="ab-input-"]');
-  const allocated = Array.from(inputs).reduce((s, inp) => s + (parseFloat(inp.value) || 0), 0);
-  const tgt = target || parseFloat(document.getElementById('ab-total-budget')?.value) || 0;
-
-  const allocEl   = document.getElementById('ab-alloc-amt');
-  const targetEl  = document.getElementById('ab-target-amt');
-  const badgeEl   = document.getElementById('ab-remain-badge');
-  const barEl     = document.getElementById('ab-alloc-bar');
-  if (!allocEl || !tgt) return;
-
+  if (barWrap) barWrap.style.display = 'block';
   const remain = tgt - allocated;
   const pct    = Math.min(allocated / tgt * 100, 100);
   const over   = allocated > tgt;
 
-  allocEl.textContent  = '$' + allocated.toLocaleString('en-US', {maximumFractionDigits:0});
-  targetEl.textContent = '$' + tgt.toLocaleString('en-US', {maximumFractionDigits:0});
-  badgeEl.textContent  = over ? `+$${Math.abs(remain).toLocaleString('en-US',{maximumFractionDigits:0})} over` : `$${remain.toLocaleString('en-US',{maximumFractionDigits:0})} left`;
-  badgeEl.style.background = over ? 'rgba(255,107,107,.18)' : 'rgba(34,211,160,.18)';
-  badgeEl.style.color      = over ? 'var(--red)' : 'var(--green)';
-  barEl.style.width      = pct + '%';
-  barEl.style.background = over ? 'var(--red)' : pct > 90 ? 'var(--yellow)' : 'var(--green)';
-}
-
-function onTotalBudgetInput() {
-  const tgt = parseFloat(document.getElementById('ab-total-budget')?.value) || 0;
-  const bar = document.getElementById('ab-total-bar');
-  if (bar && bar.style.display !== 'none' && tgt > 0) updateAllocBar(tgt);
-}
-
-function applySingleAutoBudget(cat, safeId) {
-  const inp = document.getElementById('ab-input-' + safeId);
-  if (!inp) return;
-  const val = parseFloat(inp.value) || 0;
-  if (val <= 0) { showToast('Enter a value > 0', 'error'); return; }
-  state.budgets[cat] = val;
-  renderAll(); save();
-  // Visual feedback — find the ✓ button in the same grid row
-  const row = inp.closest('[style*="grid-template-columns"]');
-  const btn = row ? row.querySelector('button') : null;
-  if (btn) {
-    const orig = btn.textContent;
-    btn.textContent = '✓';
-    btn.style.background = 'rgba(34,211,160,.25)';
-    btn.style.color = 'var(--green)';
-    btn.style.borderColor = 'rgba(34,211,160,.4)';
-    setTimeout(() => { btn.textContent = orig; btn.style.background = ''; btn.style.color = ''; btn.style.borderColor = ''; }, 1500);
+  if (barEl)   { barEl.style.width = pct + '%'; barEl.style.background = over ? 'var(--red)' : pct > 90 ? 'var(--yellow)' : 'var(--green)'; }
+  if (labelEl) labelEl.textContent = `Allocated ${fmt(allocated)} of ${fmt(tgt)}`;
+  if (badgeEl) {
+    badgeEl.textContent  = over ? `${fmt(-remain)} over` : `${fmt(remain)} left`;
+    badgeEl.style.background = over ? 'rgba(255,107,107,.18)' : 'rgba(34,211,160,.18)';
+    badgeEl.style.color      = over ? 'var(--red)' : 'var(--green)';
   }
-  showToast(`Budget set · ${cat}`);
+  if (statusEl) {
+    statusEl.textContent = over ? `−${fmt(-remain)}` : `+${fmt(remain)}`;
+    statusEl.style.color = over ? 'var(--red)' : 'var(--green)';
+  }
 }
 
-function applyAllAutoBudgets() {
-  const rows = document.querySelectorAll('#auto-budget-rows [id^="ab-input-"]');
-  let count = 0;
-  rows.forEach(inp => {
-    const cat = inp.id.replace('ab-input-','').replace(/_/g,' ');
-    // Find actual cat name from CATEGORIES (safeId may have collapsed special chars)
-    const matched = CATEGORIES.find(c => c.replace(/\W/g,'_') === inp.id.replace('ab-input-',''));
-    const actualCat = matched || cat;
-    const val = parseFloat(inp.value) || 0;
-    if (val > 0) { state.budgets[actualCat] = val; count++; }
+function onBudgetRowInput() { updateTotalBudgetBar(); }
+
+function onTotalBudgetChange() { updateTotalBudgetBar(); }
+
+function splitTotalBudget() {
+  const tgt = parseFloat(document.getElementById('total-budget-input')?.value) || 0;
+  if (tgt <= 0) { showToast('Enter a total budget amount first', 'error'); return; }
+
+  // Compute 6-month avg weights per non-excluded cat
+  const exc = state.excludedCats || [];
+  const catTotals = {};
+  for (let i = 1; i <= 6; i++) {
+    const d = new Date(NOW.getFullYear(), NOW.getMonth() - i, 1);
+    const ym = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const byC = sumByCat(txnsForYM(ym));
+    Object.entries(byC).forEach(([c, v]) => { if (!exc.includes(c)) catTotals[c] = (catTotals[c] || 0) + v; });
+  }
+  const weightSum = Object.values(catTotals).reduce((s, v) => s + v, 0);
+  if (weightSum === 0) { showToast('No spending history to split from', 'error'); return; }
+
+  // Proportional split rounded to nearest $5
+  const allocs = {};
+  let allocSum = 0;
+  const cats = CATEGORIES.filter(c => !exc.includes(c) && catTotals[c]);
+  cats.forEach(c => { allocs[c] = Math.round(((catTotals[c] / weightSum) * tgt) / 5) * 5; allocSum += allocs[c]; });
+  // Fix rounding drift on largest
+  const drift = tgt - allocSum;
+  if (drift !== 0 && cats.length) {
+    const largest = cats.reduce((a, b) => (allocs[a] >= allocs[b] ? a : b));
+    allocs[largest] = Math.max(allocs[largest] + drift, 0);
+  }
+
+  // Write into inputs
+  document.querySelectorAll('#budget-settings-list input[data-cat]').forEach(inp => {
+    const c = inp.dataset.cat;
+    if (allocs[c] !== undefined) inp.value = allocs[c];
   });
-  renderAll(); save();
-  showToast(`Applied ${count} budgets ✓`);
+  updateTotalBudgetBar();
+  showToast(`Split ${fmt(tgt)} across ${cats.length} categories`);
 }
-
 
 function renderSettings() {
   document.getElementById('monthly-income').value = state.income||'';
@@ -3181,25 +3024,52 @@ function renderSettings() {
   populateRenameSelect();
 }
 
+
 function renderBudgetSettings() {
   const el = document.getElementById('budget-settings-list'); if (!el) return;
   const exc = state.excludedCats || [];
+
+  // Compute 6-month avg per category
+  const cm = currentYM();
+  const sixMonthYMs = [];
+  for (let i = 1; i <= 6; i++) {
+    const d = new Date(NOW.getFullYear(), NOW.getMonth() - i, 1);
+    const ym = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    if (txnsForYM(ym).length > 0) sixMonthYMs.push(ym);
+  }
+  const catAvg6 = {};
+  if (sixMonthYMs.length > 0) {
+    const catTotals = {};
+    sixMonthYMs.forEach(ym => {
+      const byC = sumByCat(txnsForYM(ym));
+      Object.entries(byC).forEach(([c, v]) => { catTotals[c] = (catTotals[c] || 0) + v; });
+    });
+    Object.entries(catTotals).forEach(([c, v]) => { catAvg6[c] = v / sixMonthYMs.length; });
+  }
+
   el.innerHTML = CATEGORIES.map(cat => {
     const isExc = exc.includes(cat);
-    const safeCat = cat.replace(/'/g, "\'");
+    const safeCat = cat.replace(/'/g, "\\'");
+    const avg6 = catAvg6[cat];
+    const avgLabel = avg6 > 0 ? `<span style="font-size:10px;color:var(--text3);margin-top:1px;display:block">avg ${fmtK(avg6)}/mo</span>` : '';
     return `
-    <div class="settings-row" style="${isExc?'opacity:.6':''}">
-      <div class="settings-row-icon" style="background:${catColor(cat)}18;cursor:pointer" onclick="quickRenameCat('${safeCat}')" title="Rename category">${catIcon(cat)}</div>
-      <div style="flex:1;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:4px;cursor:pointer" onclick="quickRenameCat('${safeCat}')">${cat}</div>
+    <div class="settings-row" style="${isExc?'opacity:.55':''}">
+      <div class="settings-row-icon" style="background:${catColor(cat)}18;cursor:pointer" onclick="quickRenameCat('${safeCat}')" title="Rename">${catIcon(cat)}</div>
+      <div style="flex:1;min-width:0;margin-right:6px;cursor:pointer" onclick="quickRenameCat('${safeCat}')">
+        <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${cat}</div>
+        ${avgLabel}
+      </div>
       <button class="tog${isExc?'':' on'}" title="${isExc?'Excluded':'Included'}" onclick="toggleExclude('${cat}')" style="margin-right:6px;flex-shrink:0"></button>
       <div style="position:relative;flex-shrink:0">
         <span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12px;font-weight:700;color:var(--text2);pointer-events:none">$</span>
         <input type="number" data-cat="${cat}" value="${state.budgets[cat]||''}" placeholder="0"
           style="width:80px;text-align:right;padding:8px 8px 8px 18px;font-size:13px;border-radius:12px;flex-shrink:0"
-          ${isExc?'disabled':''}>
+          oninput="onBudgetRowInput()" ${isExc?'disabled':''}>
       </div>
     </div>`;
   }).join('');
+
+  updateTotalBudgetBar();
 }
 
 function quickRenameCat(oldName) {
@@ -3578,7 +3448,10 @@ function importData(e) {
         else if (!CAT_ICONS[name]) CAT_ICONS[name] = '🏷️';
       });
       state.nextId=Math.max(...state.transactions.map(t=>t.id||0))+1;
-      renderAll(); populateSelects(); save(); showToast('Data imported successfully ✓');
+      applyAllRules();
+      populateSelects(); save();
+      // Use rAF so the DOM is visible before renderSpendOverview measures canvas width
+      requestAnimationFrame(() => { renderAll(); showToast('Data imported successfully ✓'); });
     } catch { alert('Invalid file'); }
   }; r.readAsText(file);
 }
