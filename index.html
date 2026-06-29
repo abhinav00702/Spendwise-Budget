@@ -1604,18 +1604,6 @@ function renderDayContext(cm) {
 
   const G = 'var(--green)', R = '#ff8a80', P = '#c4b5fd';
 
-  // Budget left pill (only if a total budget is set)
-  const totalBudget = state.totalBudget || 0;
-  const allocated = Object.entries(state.budgets)
-    .filter(([c]) => !(state.excludedCats||[]).includes(c))
-    .reduce((s,[,v]) => s + (Number(v)||0), 0);
-  const budgetLeft = totalBudget - allocated;
-
-  // Top-spent category this month (excl rent/transfers)
-  const SKIP_TOP = ['Rent','Money Transfer','Transfers & Gifts'];
-  const byCat = txnsForYM(cm).filter(t => !SKIP_TOP.includes(t.category))
-    .reduce((acc,t) => { acc[t.category]=(acc[t.category]||0)+t.amount; return acc; }, {});
-  const topEntry = Object.entries(byCat).sort((a,b)=>b[1]-a[1])[0];
 
   const pills = [
     pill(`Last mo · day ${today}`,
@@ -1631,20 +1619,9 @@ function renderDayContext(cm) {
       `<span style="color:${P}">${fmt(spendPerDay)}</span>`),
     pill(`Week: ${lwLabel}`,
       lastWeekSpend > 0 ? `<span style="color:${P}">${fmt(lastWeekSpend)}</span>` : '\u2014'),
-    pill(`Yesterday's Spend`,
+    pill('Yesterday',
       ydSpend > 0 ? `<span style="color:${P}">${fmt(ydSpend)}</span>` : '\u2014'),
   ];
-
-  if (totalBudget > 0) {
-    pills.push(pill('Budget left',
-      `<span style="color:${budgetLeft >= 0 ? G : R}">${budgetLeft >= 0 ? fmt(budgetLeft) : '\u2212'+fmt(-budgetLeft)}</span>`));
-  }
-
-  if (topEntry) {
-    const [tc, ta] = topEntry;
-    pills.push(pill(`Top \u00b7 ${tc}`,
-      `<span style="color:${P}">${catIcon(tc)} ${fmtK(ta)}</span>`));
-  }
 
   el.innerHTML = pills.join('');
 }
