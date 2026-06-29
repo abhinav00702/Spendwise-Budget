@@ -677,45 +677,22 @@ select{
         <div style="flex:1">
           <div style="font-size:38px;font-weight:800;color:#fff;letter-spacing:-1.5px;line-height:1" id="hero-spent">$0</div>
           <div style="font-size:13px;color:rgba(255,255,255,.55);margin-top:4px;font-weight:500">spent of <span id="hero-budget" style="color:rgba(255,255,255,.8);font-weight:700">$0</span></div>
-          <div style="margin-top:8px;display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border-radius:10px;padding:5px 10px">
-            <div id="hero-left-dot" style="width:6px;height:6px;border-radius:50%;background:var(--green)"></div>
-            <span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.85)" id="hero-left">$0 left</span>
+          <div style="margin-top:8px;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border-radius:10px;padding:5px 10px;width:100%">
+            <div id="hero-left-dot" style="width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0"></div>
+            <span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.85);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="hero-left">$0 left</span>
           </div>
-          <div style="margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:nowrap">
-            <div id="hero-savings" style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.06);border:1px solid rgba(34,211,160,.3);border-radius:10px;padding:5px 10px;flex:1;min-width:0;overflow:hidden"></div>
+          <div style="margin-top:6px;width:100%">
+            <div id="hero-savings" style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.06);border:1px solid rgba(34,211,160,.3);border-radius:10px;padding:5px 10px;width:100%;box-sizing:border-box;overflow:hidden"></div>
           </div>
-          <div id="hero-top-cat" style="margin-top:6px;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:5px 10px;width:fit-content"></div>
+          <div id="hero-top-cat" style="margin-top:6px;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:5px 10px;width:100%;box-sizing:border-box;overflow:hidden"></div>
         </div>
       </div>
     </div>
   </div>
 
   <div class="page page-notop" style="padding-top:20px">
-    <!-- Unified spend overview card -->
-    <div id="spend-overview-card" class="card fade-up" style="padding:0;margin-bottom:16px;overflow:hidden;display:none">
-      <!-- Colorful gradient header -->
-      <div id="sov-header" style="background:linear-gradient(150deg,#1a0e3a 0%,#0d1a3a 50%,#0a1f2e 100%);padding:14px 16px 12px;position:relative;overflow:hidden">
-        <div style="position:absolute;top:-60px;right:-40px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(124,111,247,.35) 0%,transparent 70%);pointer-events:none"></div>
-        <div style="position:absolute;bottom:-50px;left:-20px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(0,212,160,.2) 0%,transparent 70%);pointer-events:none"></div>
-        <div style="display:flex;align-items:center;justify-content:space-between;position:relative">
-          <div>
-            <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.7px;margin-bottom:2px">Spending Overview</div>
-            <div id="sov-title" style="font-size:15px;font-weight:800;color:#fff"></div>
-          </div>
-          <div id="sov-legend" style="display:flex;flex-direction:column;gap:4px;align-items:flex-end"></div>
-        </div>
-        <!-- Savings row inside header -->
-        <div id="sov-savings-row" style="display:flex;gap:8px;margin-top:10px;position:relative"></div>
-      </div>
-      <!-- Chart -->
-      <div style="padding:10px 16px 0;background:var(--bg2)">
-        <canvas id="mom-chart" height="110" style="width:100%;display:block"></canvas>
-      </div>
-      <!-- Key stats strip -->
-      <div id="sov-stats" style="display:flex;gap:0;border-top:1px solid var(--border);background:var(--bg2)"></div>
-      <!-- Insight rows -->
-      <div id="sov-insights" style="padding:10px 16px 14px;display:flex;flex-direction:column;gap:7px;border-top:1px solid var(--border);background:var(--bg2)"></div>
-    </div>
+    <!-- 6 context pills: row 1 = financial context, row 2 = spend cadence -->
+    <div id="home-day-context" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px"></div>
 
     <!-- Budget categories -->
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
@@ -879,9 +856,9 @@ select{
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
         <div style="font-size:12px;font-weight:600;color:var(--text2);flex-shrink:0">Total budget</div>
         <div style="position:relative;flex:1">
-          <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:700;color:var(--text3);pointer-events:none">$</span>
+          
           <input type="number" id="total-budget-input" placeholder="0" step="100"
-            style="width:100%;padding:9px 10px 9px 22px;font-size:14px;font-weight:700;border-radius:12px;box-sizing:border-box"
+            style="width:100%;padding:9px 10px;font-size:14px;font-weight:700;border-radius:12px;box-sizing:border-box"
             oninput="onTotalBudgetChange()">
         </div>
         <div id="total-budget-status" style="font-size:12px;font-weight:700;color:var(--text3);flex-shrink:0;white-space:nowrap"></div>
@@ -1501,7 +1478,7 @@ function renderHero() {
   const txns = txnsForYM(cm);
   const allSpent   = txns.reduce((s,t) => s+t.amount, 0);
   const spent      = spentExcluding(txns);
-  const totalBudget= budgetExcluding();
+  const totalBudget= state.totalBudget > 0 ? state.totalBudget : budgetExcluding();
   const left       = totalBudget - spent;
   const pct        = totalBudget > 0 ? Math.min(spent/totalBudget,1) : 0;
 
@@ -1537,7 +1514,7 @@ function renderHero() {
     if (heroTopEntry) {
       const [tc, ta] = heroTopEntry;
       topCatEl.style.display = 'flex';
-      topCatEl.innerHTML = `<span style="font-size:14px">${catIcon(tc)}</span><span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.85);white-space:nowrap">${tc} · ${fmtK(ta)}</span>`;
+      topCatEl.innerHTML = `<span style="font-size:14px;flex-shrink:0">${catIcon(tc)}</span><span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.85);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${tc} · ${fmtK(ta)}</span>`;
     } else {
       topCatEl.style.display = 'none';
     }
@@ -1551,264 +1528,127 @@ function renderHero() {
     if (ring) { ring.style.strokeDashoffset = offset; ring.style.stroke = left<0?'#ff6b6b':'url(#heroGrad)'; }
   }, 100);
 
-  // ── Spend overview (chart + stats + insights) ──
-  renderSpendOverview(cm);
+  // ── 6 context pills ──
+  renderDayContext(cm);
 }
 
 // ═══════════════════════════════════════════════════════════════
-// UNIFIED SPEND OVERVIEW (chart + stats + insights)
+
 // ═══════════════════════════════════════════════════════════════
-function renderSpendOverview(cm) {
-  const card   = document.getElementById('spend-overview-card');
-  const canvas = document.getElementById('mom-chart');
-  if (!card || !canvas) return;
-
-  const pm  = prevYM(cm);
-  const exc = state.excludedCats || [];
-  const SKIP = ['Rent','Money Transfer','Transfers & Gifts'];
-  const today = NOW.getDate();
-  const isLight = !state.darkMode;
-
-  // ── Data ──
-  const daysInPM = new Date(parseInt(pm.split('-')[0]), parseInt(pm.split('-')[1]), 0).getDate();
-  const daysInCM = new Date(parseInt(cm.split('-')[0]), parseInt(cm.split('-')[1]), 0).getDate();
-
-  const cmByDay = new Array(daysInCM).fill(0);
-  txnsForYM(cm).filter(t => !exc.includes(t.category)).forEach(t => {
-    if (!t.date) return;
-    const d = new Date(t.date+'T00:00:00').getDate() - 1;
-    if (d >= 0 && d < daysInCM) cmByDay[d] += t.amount;
-  });
-  const cmCum = []; let runCM = 0;
-  for (let i = 0; i < today; i++) { runCM += cmByDay[i]; cmCum.push(runCM); }
-
-  const pmByDay = new Array(daysInPM).fill(0);
-  txnsForYM(pm).filter(t => !exc.includes(t.category)).forEach(t => {
-    if (!t.date) return;
-    const d = new Date(t.date+'T00:00:00').getDate() - 1;
-    if (d >= 0 && d < daysInPM) pmByDay[d] += t.amount;
-  });
-  const pmCum = []; let runPM = 0;
-  for (let i = 0; i < daysInPM; i++) { runPM += pmByDay[i]; pmCum.push(runPM); }
-
-  const pmTotal = pmCum[pmCum.length - 1] || 0;
-  const cmTotal = cmCum[cmCum.length - 1] || 0;
-  if (pmTotal === 0 && cmTotal === 0) { card.style.display = 'none'; return; }
-
-  card.style.display = 'block';
-
-  // ── Header ──
-  const titleEl = document.getElementById('sov-title');
-  if (titleEl) titleEl.textContent = `${ymLabel(cm)} vs ${ymLabel(pm)}`;
-
-  // ── Canvas ──
-  const dpr = window.devicePixelRatio || 1;
-  const W   = canvas.parentElement.clientWidth;
-  const H   = 110;
-  canvas.width  = W * dpr; canvas.height = H * dpr;
-  canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
-  const ctx = canvas.getContext('2d');
-  ctx.scale(dpr, dpr);
-
-  const gridClr = isLight ? 'rgba(0,0,0,.06)'  : 'rgba(255,255,255,.06)';
-  const labelClr = isLight ? 'rgba(0,0,0,.35)' : 'rgba(255,255,255,.35)';
-  const cmClr   = '#7c6ff7';
-  const pmClr   = isLight ? 'rgba(100,116,139,.5)' : 'rgba(148,163,184,.55)';
-  const cmFill  = isLight ? 'rgba(124,111,247,.12)' : 'rgba(124,111,247,.18)';
-  const pmFill  = isLight ? 'rgba(100,116,139,.06)' : 'rgba(148,163,184,.08)';
-
-  const PAD = { top: 8, right: 10, bottom: 22, left: 46 };
-  const plotW = W - PAD.left - PAD.right;
-  const plotH = H - PAD.top - PAD.bottom;
-
-  // Both lines share the same x-axis: day number 1..max(daysInCM, daysInPM)
-  // This way day 15 of CM and day 15 of PM are at the same x position
-  const totalDays = Math.max(daysInCM, daysInPM);
-  const niceMax = Math.ceil(Math.max(...pmCum, ...cmCum, 1) / 500) * 500;
-
-  const xScale = (dayIdx) => PAD.left + (dayIdx / (totalDays - 1 || 1)) * plotW;
-  const yScale = v => PAD.top + plotH - (v / niceMax) * plotH;
-
-  ctx.clearRect(0, 0, W, H);
-
-  // Grid lines
-  ctx.strokeStyle = gridClr; ctx.lineWidth = 1;
-  [0.25, 0.5, 0.75, 1].forEach(f => {
-    const y = PAD.top + plotH * (1 - f);
-    ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(W - PAD.right, y); ctx.stroke();
-    ctx.fillStyle = labelClr; ctx.font = '600 9px system-ui'; ctx.textAlign = 'right';
-    ctx.fillText(fmtK(niceMax * f), PAD.left - 4, y + 3);
-  });
-
-  const drawLine = (data, lClr, fClr, lW, dash) => {
-    if (data.length < 2) return;
-    if (dash) ctx.setLineDash(dash); else ctx.setLineDash([]);
-    ctx.beginPath();
-    data.forEach((v, i) => { const x = xScale(i), y = yScale(v); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
-    ctx.lineTo(xScale(data.length - 1), yScale(0));
-    ctx.lineTo(xScale(0), yScale(0));
-    ctx.closePath(); ctx.fillStyle = fClr; ctx.fill();
-    ctx.beginPath();
-    data.forEach((v, i) => { const x = xScale(i), y = yScale(v); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
-    ctx.strokeStyle = lClr; ctx.lineWidth = lW; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.stroke();
-  };
-
-  // PM full month (dashed) — day indices 0..daysInPM-1
-  drawLine(pmCum, pmClr, pmFill, 1.5, [4, 3]);
-  // CM current month (solid) — day indices 0..today-1
-  drawLine(cmCum, cmClr, cmFill, 2, null);
-  ctx.setLineDash([]);
-
-  // Vertical "today" reference line
-  const todayX = xScale(today - 1);
-  ctx.beginPath();
-  ctx.moveTo(todayX, PAD.top);
-  ctx.lineTo(todayX, PAD.top + plotH);
-  ctx.strokeStyle = isLight ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.12)';
-  ctx.lineWidth = 1;
-  ctx.setLineDash([3, 3]);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  // Today dot on CM line
-  if (cmCum.length > 0) {
-    const tx = xScale(cmCum.length - 1), ty = yScale(cmCum[cmCum.length - 1]);
-    ctx.beginPath(); ctx.arc(tx, ty, 4, 0, Math.PI * 2);
-    ctx.fillStyle = cmClr; ctx.fill();
-    ctx.strokeStyle = isLight ? '#fff' : '#1a1a2e'; ctx.lineWidth = 1.5; ctx.stroke();
-  }
-
-  // PM day-N dot (same day index as today, if PM had that day)
-  const pmDayIdx = Math.min(today - 1, pmCum.length - 1);
-  if (pmDayIdx >= 0 && pmCum[pmDayIdx] > 0) {
-    const px = xScale(pmDayIdx), py = yScale(pmCum[pmDayIdx]);
-    ctx.beginPath(); ctx.arc(px, py, 3, 0, Math.PI * 2);
-    ctx.fillStyle = isLight ? 'rgba(100,116,139,.7)' : 'rgba(148,163,184,.8)'; ctx.fill();
-    ctx.strokeStyle = isLight ? '#fff' : '#1a1a2e'; ctx.lineWidth = 1.5; ctx.stroke();
-  }
-
-  // X-axis day labels — use shared day numbers
-  ctx.fillStyle = labelClr; ctx.font = '600 8.5px system-ui'; ctx.textAlign = 'center';
-  const labelDays = [1, 7, 14, 21, totalDays];
-  labelDays.forEach(d => {
-    if (d <= totalDays) ctx.fillText(d, xScale(d - 1), H - 5);
-  });
-
-  // ── Legend ──
-  const legEl = document.getElementById('sov-legend');
-  if (legEl) legEl.innerHTML = `
-    <div style="display:flex;align-items:center;gap:5px">
-      <svg width="18" height="6"><line x1="0" y1="3" x2="18" y2="3" stroke="rgba(255,255,255,.9)" stroke-width="2.5" stroke-linecap="round"/></svg>
-      <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.85)">${ymLabel(cm)}</span>
-    </div>
-    <div style="display:flex;align-items:center;gap:5px">
-      <svg width="18" height="6"><line x1="0" y1="3" x2="18" y2="3" stroke="rgba(255,255,255,.5)" stroke-width="1.5" stroke-dasharray="4,2" stroke-linecap="round"/></svg>
-      <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.6)">${ymLabel(pm)}</span>
-    </div>`;
-
-  // ── Savings mini-pills in header ──
-  const incomeVal = state.income || 0;
-  const pmAllSpend = txnsForYM(pm).reduce((s,t) => s+t.amount, 0);
-  const lastMonSav = incomeVal > 0 ? incomeVal - pmAllSpend : null;
-  const projSav = incomeVal > 0 ? (() => {
-    const allSpentCm = txnsForYM(cm).reduce((s,t) => s+t.amount, 0);
-    const projTotal  = (allSpentCm / today) * daysInCM;
-    return incomeVal - projTotal;
-  })() : null;
-
-  const savPill = (label, val, positive) => {
-    const dotClr = positive ? '#22d3a0' : '#ff6b6b';
-    const bdr    = positive ? 'rgba(34,211,160,.3)' : 'rgba(255,107,107,.3)';
-    const ico    = positive ? '💰' : '⚠';
-    return `<div style="flex:1;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.06);border:1px solid ${bdr};border-radius:10px;padding:5px 10px;min-width:0;overflow:hidden">
-      <div style="width:6px;height:6px;border-radius:50%;background:${dotClr};flex-shrink:0"></div>
-      <div style="min-width:0">
-        <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap">${label}</div>
-        <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.85);white-space:nowrap">${ico} ${val}</div>
-      </div>
-    </div>`;
-  };
-
-  const savRowEl = document.getElementById('sov-savings-row');
-  if (savRowEl) {
-    const pills = [];
-    if (lastMonSav !== null) pills.push(savPill(`${ymLabel(pm)} saved`, lastMonSav >= 0 ? fmtK(lastMonSav) : '−'+fmtK(-lastMonSav), lastMonSav >= 0));
-    if (projSav   !== null) pills.push(savPill('Proj. this month', projSav >= 0 ? fmtK(projSav) : '−'+fmtK(-projSav), projSav >= 0));
-    savRowEl.innerHTML = pills.join('');
-    savRowEl.style.display = pills.length ? 'flex' : 'none';
-  }
-
-  // ── Stats strip (3 colored tiles) ──
-  const pace         = cmTotal > 0 ? (cmTotal / today) * daysInCM : 0;
-  // pmByDayToday = last month cumulative spend up to the same day number as today
-  const pmByDayToday = pmCum[Math.min(today - 1, pmCum.length - 1)] || 0;
-  const vsLastDayClr = cmTotal > pmByDayToday * 1.05 ? 'var(--red)' : cmTotal < pmByDayToday * 0.95 ? 'var(--green)' : 'var(--text2)';
-  const paceClr      = pace > pmTotal * 1.05 ? 'var(--red)' : 'var(--green)';
-  const pctDiff      = pmTotal > 0 ? ((pace - pmTotal) / pmTotal * 100) : 0;
-  const diffClr      = pctDiff > 5 ? 'var(--red)' : pctDiff < -5 ? 'var(--green)' : 'var(--text2)';
-  const diffSign     = pctDiff >= 0 ? '+' : '';
-
-  const tile = (label, val, color, accentBg) =>
-    `<div style="flex:1;padding:10px 10px;text-align:center;border-right:1px solid var(--border);${accentBg ? 'background:'+accentBg+';' : ''}">
-      <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;white-space:nowrap">${label}</div>
-      <div style="font-size:13px;font-weight:800;color:${color || 'var(--text)'}">${val}</div>
-    </div>`;
-
-  const statsEl = document.getElementById('sov-stats');
-  if (statsEl) statsEl.innerHTML =
-    tile(`${ymLabel(cm)} day ${today}`, fmtK(cmTotal), vsLastDayClr, vsLastDayClr === 'var(--red)' ? 'rgba(255,107,107,.06)' : vsLastDayClr === 'var(--green)' ? 'rgba(34,211,160,.06)' : '') +
-    tile(`${ymLabel(pm)} day ${today}`, fmtK(pmByDayToday), 'var(--text2)') +
-    `<div style="flex:1;padding:10px 10px;text-align:center;${paceClr==='var(--red)'?'background:rgba(255,107,107,.06)':'background:rgba(34,211,160,.06)'}">
-      <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Proj. full mo</div>
-      <div style="font-size:13px;font-weight:800;color:${paceClr}">${fmtK(pace)}</div>
-      <div style="font-size:9px;font-weight:700;color:${diffClr};margin-top:1px">${diffSign}${pctDiff.toFixed(0)}% vs ${ymLabel(pm)}</div>
-    </div>`;
-
-  // ── Insight rows ──
+// 6 CONTEXT PILLS
+// ═══════════════════════════════════════════════════════════════
+function renderDayContext(cm) {
+  const el = document.getElementById('home-day-context'); if (!el) return;
+  const today      = NOW.getDate();
+  const pm         = prevYM(cm);
+  const exc        = state.excludedCats || [];
   const DAILY_EXCL = ['Rent','Money Transfer','Transfers & Gifts'];
-  const cmDailyAmt = txnsForYM(cm).filter(t => !DAILY_EXCL.includes(t.category)).reduce((s,t) => s+t.amount, 0);
-  const spendPerDay = cmDailyAmt / Math.max(today, 1);
 
+  // ── Pill 1: Last month spend up to same day ──
+  const pmByDay = txnsForYM(pm).filter(t => {
+    const d = new Date(t.date+'T00:00:00');
+    return d.getDate() <= today && !exc.includes(t.category);
+  }).reduce((s,t) => s+t.amount, 0);
+  const curSpent = spentExcluding(txnsForYM(cm));
+
+  // ── Pill 2: Projected saving this month ──
+  const daysElapsed = Math.max(today, 1);
+  const projSavVal = (() => {
+    const inc = state.income || 0; if (!inc) return null;
+    const lastDay = new Date(NOW.getFullYear(), NOW.getMonth()+1, 0).getDate();
+    const allSpentCm = txnsForYM(cm).reduce((s,t) => s+t.amount, 0);
+    const projTotal = (allSpentCm / daysElapsed) * lastDay;
+    return inc - projTotal;
+  })();
+
+  // ── Pill 3: Savings last month ──
+  const incomeVal = state.income || 0;
+  const pmTotalSpend = txnsForYM(pm).reduce((s,t) => s+t.amount, 0);
+  const lastMonthSavings = incomeVal - pmTotalSpend;
+
+  // ── Pill 4: $/Day excl. rent ──
+  const cmDailyAmt = txnsForYM(cm).filter(t => !DAILY_EXCL.includes(t.category)).reduce((s,t) => s+t.amount, 0);
+  const spendPerDay = cmDailyAmt / daysElapsed;
+
+  // ── Pill 5: Last week spend ──
   const todayDow = NOW.getDay();
   const daysToMon = todayDow === 0 ? 6 : todayDow - 1;
   const thisWeekMon = new Date(NOW); thisWeekMon.setDate(NOW.getDate() - daysToMon);
   const lastWeekMon = new Date(thisWeekMon); lastWeekMon.setDate(thisWeekMon.getDate() - 7);
   const lastWeekSun = new Date(thisWeekMon); lastWeekSun.setDate(thisWeekMon.getDate() - 1);
-  const lw = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-  const lastWeekSpend = state.transactions.filter(t => t.date && t.date >= lw(lastWeekMon) && t.date <= lw(lastWeekSun) && !DAILY_EXCL.includes(t.category)).reduce((s,t) => s+t.amount, 0);
-  const lwLabel = `${lastWeekMon.toLocaleDateString('en-US',{month:'short',day:'numeric'})}–${lastWeekSun.toLocaleDateString('en-US',{month:'short',day:'numeric'})}`;
+  const lw = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  const lastWeekSpend = state.transactions
+    .filter(t => t.date && t.date >= lw(lastWeekMon) && t.date <= lw(lastWeekSun) && !DAILY_EXCL.includes(t.category))
+    .reduce((s,t) => s+t.amount, 0);
+  const lwLabel = lastWeekMon.toLocaleDateString('en-US',{month:'short',day:'numeric'})
+    + '\u2013' + lastWeekSun.getDate();
 
+  // ── Pill 6: Yesterday spend ──
   const yd = new Date(NOW); yd.setDate(yd.getDate() - 1);
   const ydStr = lw(yd);
   const ydSpend = state.transactions.filter(t => t.date === ydStr).reduce((s,t) => s+t.amount, 0);
-  const ydLabel = yd.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});
+  const ydLabel = yd.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'}).replace(',','');
 
-  const clrLabel = isLight ? '#44445a' : '#9090b8';
-  const clrAmt   = isLight ? '#4f35d4' : '#c4b5fd';
-  const clrDiv   = isLight ? 'rgba(0,0,0,.08)' : 'rgba(255,255,255,.08)';
+  // ── Shared pill renderer ──
+  const PILL_BRD = 'rgba(255,255,255,.1)';
+  const PILL_SH  = '0 4px 20px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.07)';
+  const PILL_BG  = 'linear-gradient(135deg,#1a0e3a 0%,#0d1a3a 50%,#0a1f2e 100%)';
+  const PILL_ORB = 'rgba(124,111,247,.18)';
 
-  const irow = (icon, label, sublabel, val, valClr) =>
-    `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-      <div style="display:flex;align-items:center;gap:7px;min-width:0">
-        <span style="font-size:15px;flex-shrink:0">${icon}</span>
-        <div style="min-width:0">
-          <div style="font-size:11px;font-weight:700;color:${clrLabel};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${label}</div>
-          ${sublabel ? `<div style="font-size:10px;color:var(--text3)">${sublabel}</div>` : ''}
-        </div>
-      </div>
-      <span style="font-size:13px;font-weight:800;color:${valClr};flex-shrink:0">${val}</span>
+  const pill = (label, val) =>
+    `<div style="background:${PILL_BG};border:1px solid ${PILL_BRD};border-radius:14px;padding:11px 12px;box-shadow:${PILL_SH};position:relative;overflow:hidden;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;flex-direction:column;justify-content:space-between;height:76px">
+      <div style="position:absolute;top:-18px;right:-18px;width:56px;height:56px;border-radius:50%;background:${PILL_ORB};pointer-events:none"></div>
+      <div style="font-size:8px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:.5px;position:relative;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${label}</div>
+      <div style="font-size:14px;font-weight:800;color:#ffffff;position:relative;line-height:1.2">${val}</div>
     </div>`;
 
-  const sovInsights = document.getElementById('sov-insights');
-  if (sovInsights) {
-    sovInsights.innerHTML = [
-      irow('📅', '$/Day excl. Rent', ymLabel(cm), fmt(spendPerDay) + '/day', clrAmt),
-      `<div style="height:1px;background:${clrDiv}"></div>`,
-      irow('📆', 'Last week', lwLabel, lastWeekSpend > 0 ? fmt(lastWeekSpend) : '—', lastWeekSpend > 0 ? clrAmt : 'var(--text3)'),
-      irow('🕐', 'Yesterday', ydLabel, ydSpend > 0 ? fmt(ydSpend) : '—', ydSpend > 0 ? clrAmt : 'var(--text3)'),
-    ].join('');
+  const G = 'var(--green)', R = '#ff8a80', P = '#c4b5fd';
+
+  // Budget left pill (only if a total budget is set)
+  const totalBudget = state.totalBudget || 0;
+  const allocated = Object.entries(state.budgets)
+    .filter(([c]) => !(state.excludedCats||[]).includes(c))
+    .reduce((s,[,v]) => s + (Number(v)||0), 0);
+  const budgetLeft = totalBudget - allocated;
+
+  // Top-spent category this month (excl rent/transfers)
+  const SKIP_TOP = ['Rent','Money Transfer','Transfers & Gifts'];
+  const byCat = txnsForYM(cm).filter(t => !SKIP_TOP.includes(t.category))
+    .reduce((acc,t) => { acc[t.category]=(acc[t.category]||0)+t.amount; return acc; }, {});
+  const topEntry = Object.entries(byCat).sort((a,b)=>b[1]-a[1])[0];
+
+  const pills = [
+    pill(`Last mo · day ${today}`,
+      `<span style="color:${pmByDay > curSpent ? G : R}">${fmt(pmByDay)}</span>`),
+    pill('Proj. saving',
+      projSavVal === null ? '\u2014' :
+      `<span style="color:${projSavVal >= 0 ? G : R}">${projSavVal >= 0 ? '+' : '\u2212'}${fmtK(Math.abs(projSavVal))}</span>`),
+    pill(`Saved \u00b7 ${ymLabel(pm)}`,
+      incomeVal > 0
+        ? `<span style="color:${lastMonthSavings >= 0 ? G : R}">${fmt(Math.abs(lastMonthSavings))}</span>`
+        : '\u2014'),
+    pill('Daily Spend',
+      `<span style="color:${P}">${fmt(spendPerDay)}</span>`),
+    pill(`Week: ${lwLabel}`,
+      lastWeekSpend > 0 ? `<span style="color:${P}">${fmt(lastWeekSpend)}</span>` : '\u2014'),
+    pill(`Yesterday's Spend`,
+      ydSpend > 0 ? `<span style="color:${P}">${fmt(ydSpend)}</span>` : '\u2014'),
+  ];
+
+  if (totalBudget > 0) {
+    pills.push(pill('Budget left',
+      `<span style="color:${budgetLeft >= 0 ? G : R}">${budgetLeft >= 0 ? fmt(budgetLeft) : '\u2212'+fmt(-budgetLeft)}</span>`));
   }
+
+  if (topEntry) {
+    const [tc, ta] = topEntry;
+    pills.push(pill(`Top \u00b7 ${tc}`,
+      `<span style="color:${P}">${catIcon(tc)} ${fmtK(ta)}</span>`));
+  }
+
+  el.innerHTML = pills.join('');
 }
+
 
 function renderBudgetList() {
   const el = document.getElementById('budget-list'); if (!el) return;
@@ -2978,7 +2818,14 @@ function updateTotalBudgetBar() {
 
 function onBudgetRowInput() { updateTotalBudgetBar(); }
 
-function onTotalBudgetChange() { updateTotalBudgetBar(); }
+function onTotalBudgetChange() {
+  const val = parseFloat(document.getElementById('total-budget-input')?.value) || 0;
+  const catSum = budgetExcluding();
+  // Only persist as explicit totalBudget if user typed something different from the auto-sum
+  state.totalBudget = (val !== catSum || val === 0) ? val : 0;
+  save();
+  updateTotalBudgetBar();
+}
 
 function splitTotalBudget() {
   const tgt = parseFloat(document.getElementById('total-budget-input')?.value) || 0;
@@ -3019,6 +2866,12 @@ function splitTotalBudget() {
 
 function renderSettings() {
   document.getElementById('monthly-income').value = state.income||'';
+  const tbInp = document.getElementById('total-budget-input');
+  if (tbInp) {
+    // Show state.totalBudget if set, otherwise show sum of category budgets
+    const catSum = budgetExcluding();
+    tbInp.value = state.totalBudget > 0 ? state.totalBudget : (catSum > 0 ? catSum : '');
+  }
   renderBudgetSettings();
   renderRules();
   populateRenameSelect();
@@ -3420,7 +3273,7 @@ function saveIncomeLog(key, incInputId, savInputId) {
 // IMPORT / EXPORT
 // ═══════════════════════════════════════════════════════════════
 function exportData() {
-  const blob=new Blob([JSON.stringify({transactions:state.transactions,budgets:state.budgets,rules:state.rules,income:state.income,incomeLog:state.incomeLog||{},excludedCats:state.excludedCats||[],customCategories:state.customCategories||[],categoryRenames:state.categoryRenames||{},excludedTxnIds:state.excludedTxnIds||[]},null,2)],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({transactions:state.transactions,budgets:state.budgets,rules:state.rules,income:state.income,incomeLog:state.incomeLog||{},excludedCats:state.excludedCats||[],customCategories:state.customCategories||[],categoryRenames:state.categoryRenames||{},excludedTxnIds:state.excludedTxnIds||[],totalBudget:state.totalBudget||0},null,2)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
   const d=new Date(); const localDate=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   a.download=`spendwise_backup_${localDate}.json`; a.click();
@@ -3432,6 +3285,7 @@ function importData(e) {
       const d=JSON.parse(ev.target.result);
       if (d.transactions) state.transactions=d.transactions;
       if (d.budgets) state.budgets=d.budgets;
+      if (d.totalBudget) state.totalBudget=d.totalBudget;
       if (d.rules) state.rules=d.rules;
       if (d.income) state.income=d.income;
       if (d.incomeLog) state.incomeLog=d.incomeLog;
@@ -3617,7 +3471,6 @@ function switchTab(tabId) {
 // BOOT
 // ═══════════════════════════════════════════════════════════════
 window.addEventListener('load', init);
-window.addEventListener('resize', () => { renderSpendOverview(currentYM()); });
 
 </script>
 </body>
